@@ -1,4 +1,4 @@
-var t = [], crd = [], tick = function(){}, tmp = this;
+var t = [], crd = [], empty = tick = function(){}, tmp = this;
 module = true;
 X = innerWidth;
 Y = innerHeight;
@@ -22,9 +22,9 @@ addEventListener("resize",rel);
 addEventListener("load",rel);
 addEventListener("online",rel);
 addEventListener("offline",rel);
-addEventListener("load",function tick() {
+addEventListener("load",tick=function tick() {
 	var remlist = [];
-	ele("node").forEach(function(val) {
+	ele("node").concat(ele(".node")).forEach(function(val) {
 		val.innerHTML = eval(val.getAttribute("data-func").replace("this","val"));
 		if (val.getAttribute("data-del")) {
 			remlist.push(val);
@@ -163,12 +163,12 @@ function ele(val,bl,comm,pr) {
 		val = val.split(",");
 		com = [];
 		for (var stp = 0; stp < val.length; stp++) {
-			com.push(ele(val[stp],bl));
+			com.concat(ele(val[stp],bl));
 		}
 		return com;
 	}
 	var bo = true;
-	par = val.match(/^(.|\.|#| |\*)(?!\\(?!\\)).*?(?=(#|\.| |$|\*|,)(?!\\(?!\\)))/mi)[0];
+	var par = val.match(/^(.|\.|#| |\*)(?!\\(?!\\)).*?(?=(#|\.| |$|\*|,)(?!\\(?!\\)))/mi)[0];
 	if (par.match(/\[(?!\\(?!\\)).*?-(?!\\(?!\\)).*?\](?!\\(?!\\))/gmi)&&!pr) {
 		com = [];
 		var ind = par.match(/\[.*?\]/mi)[0].replace(/(\[|\])(?!\\(?!\\))/gmi,"").split("-");
@@ -293,7 +293,7 @@ function dbg(tr) {
 	tr.style.zIndex = 10000;
 	tr.id = "dbgdbg";
 	tr.onclick = function() {
-		eval("try{"+prompt("Run Command ( hlp() )")+"}catch(E){alert(E);}");
+		eval("try{"+prompt("Run Command ( hlp() )")+"}catch(E){alert(E.toString()+'\\n\\n'+E.lineNumber);}");
 	};
 }//dbg
 function cor(tr,d) {
@@ -698,9 +698,6 @@ function ajx(u,f,p,d,syn,user,pass) {
 	aj.src = u;
 	return aj;
 }//ajx
-Array.prototype.par = function(func) {
-	return eval("("+func+")("+this.map(function(val){if(typeof val=="string"){return "'"+val+"'";}else{return val;}}).join(",")+")");
-};
 [String,Array,Number].forEach(function(val) {
 	val.prototype.wrp = function(wr) {
 		if (this instanceof String||this instanceof Number) {
@@ -751,6 +748,12 @@ function ins(el) {
 function Ins(el) {
 	return JSON.stringify(el);
 }//Ins
+Object.prototype.prp = function(ind) {
+	return this[Object.keys(this)[ind?Number(ind):0]];
+};
+Object.prototype.Prp = function(ind) {
+	return Object.keys(this)[ind?Number(ind):0];
+};
 Object.prototype.ins = function() {
 	return ins(this);
 };
@@ -825,7 +828,7 @@ Array.prototype.split = function() {
 };
 Array.prototype.rmv = String.prototype.rmv = function(elm) {
 	var arr = this.split("");
-	arr.splice(elm,1);
+	arr.splice(typeof elm=="number"?elm:this.indexOf(elm),1);
 	if (this instanceof String) {
 		return arr.join("");
 	}
@@ -883,6 +886,7 @@ String.prototype.join = function(j,s) {
 	return this.split(s?s:"").join(j?j:"");
 };
 Frame = requestAnimationFrame = webkitRequestAnimationFrame||mozRequestAnimationFrame||oRequestAnimationFrame||khtmlRequestAnimationFrame||msRequestAnimationFrame||ieRequestAnimationFrame||requestAnimationFrame||setTimeout;
+Fullscreen = requestFullscreen = webkitRequestFullscreen||mozRequestFullscreen||oRequestFullscreen||khtmlRequestFullscreen||msRequestFullscreen||ieRequestFullscreen||requestFullscreen||empty;
 if (!escape) {
 	escape = encodeURI;
 }
@@ -911,6 +915,14 @@ function bool(dt) {
 String.prototype.bool = function() {
 	return bool(this.toString());
 };
+function par(fun,num,nam,cod) {
+	var arr = rep(num,function(st) {
+		return nam+(st+1);
+	});
+	arr.push(nam);
+	arr.push(nam+"0");
+	return eval(fun+"=function "+fun+"("+arr.join(",")+"){"+(typeof cod=="string"?cod:"return ("+cod+")()")+"}");
+}//par
 function hlp() {
 	//<script src=https://dl.dropboxusercontent.com/s/i8vpm0vlhrlc1en/Module.js?dl=1&raw=1></script>
 	//<script src=https://gist.github.com/ValentinHacker/968b0597d65836870644195c4322cf60.js></script>
@@ -945,11 +957,13 @@ function hlp() {
 	ins(object) -> inspect object
 	dup(string,times) -> repeat string pattern
 	alt(boolean) -> alternate boolean value
-	sig(number) -> signum (+1/-1)
+	sig(number) -> signum (+1/-1/0)
 	.rmv(index) -> remove item from array/string
 	Array.pure() -> grab array value instead of pointer
 	Image.data() -> export image as base64
 	Array.shf() -> shuffle
-	lim(num,min,max) -> limit number range
-	bool(str) -> string boolean */
+	Number..lim(min,max) -> limit number range
+	bool(str) -> string boolean
+	par(func,num,nam,cod) -> create number with specific number of params... E.x. : par("func",5,"param",function(){alert(param2)}||"alert(param2)") - func=function func(param1,param2,param3,param4,param5,param,param0){alert(param2)} */
 }//hlp
+//<script src=https://gist.github.com/ValentinHacker/f1e53050400fdb69e2cb74655c136f04.js></script>
