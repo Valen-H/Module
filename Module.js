@@ -1,4 +1,4 @@
-var t = [], crd = [], empty = tick = function(){}, tmp = this;
+var t = [], crd = [], empty = tick = function(){}, tmp = this, err = "";
 module = true;
 X = innerWidth;
 Y = innerHeight;
@@ -11,10 +11,11 @@ loc = location;
 csl = console;
 Win = this;
 auto = true;
+nul = function(){};
 Sec = Millis = millis = 0;
 alph = "abcdefghijklmnopqrtsuvwxyz";
-ALPH = alph.toUpperCase().split();
-Alph = (alph+"0123456789").split();
+ALPH = alph.toUpperCase();
+Alph = (alph+ALPH+"0123456789");
 online = navigator.onLine;
 prefix = ["moz","webkit","o","ms","khtml","ie"];
 mobile = /android|iphone|ipod|ipad|tablet|smartphone|ios/gmi.test(UA=navigator.userAgent);
@@ -22,9 +23,18 @@ addEventListener("resize",rel);
 addEventListener("load",rel);
 addEventListener("online",rel);
 addEventListener("offline",rel);
+addEventListener("error",function(e) {
+	err += e.message+"\t"+e.fileName+"\t"+e.lineNumber+"\n";
+});
 addEventListener("load",tick=function tick() {
 	var remlist = [];
 	ele("node").concat(ele(".node")).forEach(function(val) {
+		if (eval(val.getAttribute("data-stop"))) {
+			if (/^\d+$/gmi.test(val.getAttribute("data-stop"))) {
+				val.setAttribute("data-stop",val.getAttribute("data-stop")-1);
+			}
+			return "paused";
+		}
 		val.innerHTML = eval(val.getAttribute("data-func").replace("this","val"));
 		if (val.getAttribute("data-del")) {
 			remlist.push(val);
@@ -32,9 +42,7 @@ addEventListener("load",tick=function tick() {
 	});
 	remlist.forEach(rem);
 	setTimeout(tick,1);
-	if(Sec++%100) {
-		rel();
-	}
+	setTimeout(rel);
 });
 function rel() {
 	if (auto) {
@@ -167,8 +175,7 @@ function ele(val,bl,comm,pr) {
 		}
 		return com;
 	}
-	var bo = true;
-	var par = val.match(/^(.|\.|#| |\*)(?!\\(?!\\)).*?(?=(#|\.| |$|\*|,)(?!\\(?!\\)))/mi)[0];
+	var bo = true, par = val.match(/^(.|\.|#| |\*)(?!\\(?!\\)).*?(?=(#|\.| |$|\*|,)(?!\\(?!\\)))/mi)[0];
 	if (par.match(/\[(?!\\(?!\\)).*?-(?!\\(?!\\)).*?\](?!\\(?!\\))/gmi)&&!pr) {
 		com = [];
 		var ind = par.match(/\[.*?\]/mi)[0].replace(/(\[|\])(?!\\(?!\\))/gmi,"").split("-");
@@ -288,12 +295,12 @@ function dbg(tr) {
 	}
 	tr = crt("button");
 	tr.style.position = "fixed";
-	tr.style.top = tr.style.left = "8%";
+	tr.style.top = tr.style.left = "7%";
 	tr.innerHTML = "Debug";
 	tr.style.zIndex = 10000;
 	tr.id = "dbgdbg";
 	tr.onclick = function() {
-		eval("try{"+prompt("Run Command ( hlp() )")+"}catch(E){alert(E.toString()+'\\n\\n'+E.lineNumber);}");
+		eval("try{"+prompt("Run Command ( hlp() )")+"}catch(E){alert(E);}");
 	};
 }//dbg
 function cor(tr,d) {
@@ -547,6 +554,17 @@ function rnd(frm,to,rd) {
 		return !rd?Math.round(Math.random()*(to-frm)+frm):(Math.random()*(to-frm)+frm);
 	}
 }//rnd
+Math.rnd = rnd;
+Number.prototype.rnd = function(frm,rd) {
+	rnd(frm,this,rd);
+};
+Array.prototype.rnd = function(rd) {
+	var ind = rnd(0,this.length-1);
+	if (rd) {
+		return ind;
+	}
+	return this[ind];
+};
 if (/heavy/gmi.test(auto.toString())) {
 	rnd = function(frm,to,rd) {
 		if (frm===undefined) {
@@ -569,17 +587,6 @@ if (/heavy/gmi.test(auto.toString())) {
 		}
 	};
 }
-Math.rnd = rnd;
-Number.prototype.rnd = function(frm,rd) {
-	rnd(frm,this,rd);
-};
-Array.prototype.rnd = function(rd) {
-	var ind = rnd(0,this.length-1);
-	if (rd) {
-		return ind;
-	}
-	return this[ind];
-};
 function dst(x,y,d) {
 	if (x!==undefined&&y!==undefined&&d===undefined) {
 		return Math.sqrt(Math.pow(x,2)+Math.pow(y,2));
@@ -796,13 +803,21 @@ function sig(n) {
 if (!Math.sign) {
 	Math.sign = sig;
 }
-Math.sum = function(lst) {
+Math.sum = Number.prototype.sum = function(lst) {
+	lst = lst?lst:(Number(this)||"")
 	var acc = 0;
 	while (lst) {
 		acc += lst;
 		lst--;
 	}
 	return acc;
+};
+Array.prototype.sum = function() {
+	var tmp = 0;
+	this.forEach(function(val) {
+		tmp += val
+	});
+	return tmp
 };
 Math.fac = function(lst) {
 	var acc = 1;
@@ -819,6 +834,8 @@ Object.prototype.each = Object.prototype.foreach = Object.prototype.forEach = Ar
 Number.prototype.forEach = function(func) {
 	return this.toString().forEach(func);
 };
+input = ask = prompt;
+accept = choose = confirm;
 popup = Alert = alert;
 String.prototype.splice = function(str,end) {
 	return this.split("").splice(str,end?end:(this.length-str)).join("");
@@ -828,6 +845,9 @@ Array.prototype.split = function() {
 };
 Array.prototype.rmv = String.prototype.rmv = function(elm) {
 	var arr = this.split("");
+	if (typeof elm!="number"&&this.indexOf(elm)<0) {
+		return this;
+	}
 	arr.splice(typeof elm=="number"?elm:this.indexOf(elm),1);
 	if (this instanceof String) {
 		return arr.join("");
@@ -835,8 +855,9 @@ Array.prototype.rmv = String.prototype.rmv = function(elm) {
 	return arr;
 };
 Array.prototype.pure = function() {
-	return this.join(",").split(",")||[];
+	return this.clone()||this.join(",").split(",")||[];
 };
+//^deprecated
 Image.prototype.data = function() {
 	var can = document.createElement("canvas");
 	can.width = this.width;
@@ -885,13 +906,15 @@ Array.prototype.split = function(s,j) {
 String.prototype.join = function(j,s) {
 	return this.split(s?s:"").join(j?j:"");
 };
-Frame = requestAnimationFrame = webkitRequestAnimationFrame||mozRequestAnimationFrame||oRequestAnimationFrame||khtmlRequestAnimationFrame||msRequestAnimationFrame||ieRequestAnimationFrame||requestAnimationFrame||setTimeout;
-Fullscreen = requestFullscreen = webkitRequestFullscreen||mozRequestFullscreen||oRequestFullscreen||khtmlRequestFullscreen||msRequestFullscreen||ieRequestFullscreen||requestFullscreen||empty;
+try {
+	Frame = requestAnimationFrame = webkitRequestAnimationFrame||mozRequestAnimationFrame||oRequestAnimationFrame||khtmlRequestAnimationFrame||msRequestAnimationFrame||ieRequestAnimationFrame||requestAnimationFrame||setTimeout;
+	Fullscreen = requestFullScreen = webkitRequestFullScreen||mozRequestFullScreen||oRequestFullScreen||khtmlRequestFullScreen||msRequestFullScreen||ieRequestFullScreen||requestFullScreen||empty;
+} catch(e) {}
 if (!escape) {
-	escape = encodeURI;
+	escape = encodeURI||encodeURIComponent;
 }
 if (!unescape) {
-	unescape = decodeURI;
+	unescape = decodeURI||decodeURIComponent;
 }
 function lim(n,m,M) {
 	n = Number(n);
@@ -910,7 +933,7 @@ Array.prototype.lim = function(min,max) {
 	return this;
 };
 function bool(dt) {
-	return dt==="true"?true:(dt==="false"||dt==="0"||dt==="null"||dt==="undefined"?false:Boolean(dt));
+	return dt==="true"||dt==="1"?true:(dt==="false"||dt==="0"||dt==="null"||dt==="undefined"?false:Boolean(dt));
 }//bool
 String.prototype.bool = function() {
 	return bool(this.toString());
@@ -919,10 +942,17 @@ function par(fun,num,nam,cod) {
 	var arr = rep(num,function(st) {
 		return nam+(st+1);
 	});
-	arr.push(nam);
-	arr.push(nam+"0");
-	return eval(fun+"=function "+fun+"("+arr.join(",")+"){"+(typeof cod=="string"?cod:"return ("+cod+")()")+"}");
+	return eval(fun+"=function "+fun+"("+arr.join(",")+","+nam+","+nam+"0){"+nam+"=["+arr.join(",")+"];"+nam+"0=['"+fun+"',"+num+"];"+(typeof cod=="string"?cod:"return ("+cod+")()")+"}");
 }//par
+Math.Min = function min(n) {
+	return Math.min.apply(null,n);
+};
+Math.Max = function max(n) {
+	return Math.max.apply(null,n);
+};
+Object.prototype.last = function(off) {
+	return this[Object.keys(this)[Object.keys(this).length-1-(off?off:0)]];
+};
 function hlp() {
 	//<script src=https://dl.dropboxusercontent.com/s/i8vpm0vlhrlc1en/Module.js?dl=1&raw=1></script>
 	//<script src=https://gist.github.com/ValentinHacker/968b0597d65836870644195c4322cf60.js></script>
@@ -962,6 +992,7 @@ function hlp() {
 	Array.pure() -> grab array value instead of pointer
 	Image.data() -> export image as base64
 	Array.shf() -> shuffle
+	Array.last(index) -> last element
 	Number..lim(min,max) -> limit number range
 	bool(str) -> string boolean
 	par(func,num,nam,cod) -> create number with specific number of params... E.x. : par("func",5,"param",function(){alert(param2)}||"alert(param2)") - func=function func(param1,param2,param3,param4,param5,param,param0){alert(param2)} */
