@@ -7,12 +7,13 @@ skew = [0,0];
 Skew = [0,0];
 scls = [100,100];
 Scls = [100,100];
-rots = 0;
-Rots = 0;
-auto = true;  //heavy,light,fill,stroke,full,lock,unlock
-canvas = true;
+loads = rots = Rots = 0;
+auto = true;  //heavy,light,fill,stroke,full,lock,unlock,nocenter
+canvas = new Object();
 off = [0,0];
 pixel = devicePixelRatio||1;
+onimgs = new CustomEvent("imgs");
+onimg = new CustomEvent("img");
 var crd = [0,0], ps = false, Trns = [0,0], Rots = 0, Scls = [100,100], dr = [null,null,null,null,null,false], zo = [null,null,null,null,false];
 function ln(x,y,X,Y) {
 	if (Y!==undefined) {
@@ -132,6 +133,7 @@ function ark(x,y,r,a,b,c) {
 		stk(auto.toString().match(/fill/gmi)?true:false);
 		return mov(x,y);
 	}
+	return d = [x+rx,y];
 }//ark
 CanvasRenderingContext2D.prototype.ark = function(x,y,r,a,b,c) {
 	var pen = this;
@@ -167,6 +169,7 @@ if (CanvasRenderingContext2D.prototype.ellipse||CanvasRenderingContext2D.ellipse
 		if (!auto) {
 			return d = [x+rx,y];
 		} else {
+			stk(auto.toString().match(/fill/gmi)?true:false);
 			return mov(x,y);
 		}
 	};
@@ -174,6 +177,30 @@ if (CanvasRenderingContext2D.prototype.ellipse||CanvasRenderingContext2D.ellipse
 CanvasRenderingContext2D.prototype.ell = function(x,y,rx,ry,a,b,c) {
 	var pen = this;
 	return ell(x,y,rx,ry,a,b,c);
+};
+function pol(x,y,r,s,sa,A) {
+	if (auto) {
+		beg();
+	}
+	var a = (Math.PI*2)/s;
+	a = A?-a:a;
+	str();
+	trn(x,y);
+	rot(sa);
+	mov(r,0);
+	for (var i=1; i<=s; i++) {
+    	ln(r*Math.cos(a*i),r*Math.sin(a*i));
+    }
+    rst();
+    if (!auto) {
+		return d;
+	} else {
+		return mov(x,y);
+	}
+}//pol
+CanvasRenderingContext2D.prototype.pol = function(x,y,r,s,sa,A) {
+	var pen = this;
+	return pol(x,y,r,s,sa,A);
 };
 function stk(typ) {
 	if (typ) {
@@ -306,17 +333,22 @@ CanvasRenderingContext2D.prototype.rst = function(a) {
 	rst(a);
 };
 function scr(X,Y) {
+	str();
 	if (X===undefined) {
 		can.style.position = "fixed";
 		can.style.width = "100vw";
 		can.style.height = "100vh";
 		can.style.top = can.style.left = 0;
-		if (/full/gmi.test(auto.toString())) {
+		if (/full/gmi.test(auto.toString())&&!canvas.full) {
 			addEventListener("resize",function(){scr()});
 			addEventListener("orientationchange",function(){scr()});
+			canvas.full = true;
 		}
 	} else if (Y===undefined) {
 		Y = X;
+		delete canvas.full;
+	} else {
+		delete canvas.full;
 	}
 	X = can.width = X?X:innerWidth;
 	Y = can.height = Y?Y:innerHeight;
@@ -329,13 +361,18 @@ function scr(X,Y) {
 		un = [x/(mobile?Xx:innerWidth),y/(mobile?Yy:innerHeight)];
 		DIF = x>y?y:x;
 	}
-	return [X,Y];
+	rst();
+	return [can.width=X,can.height=Y];
 }//scr
 CanvasRenderingContext2D.prototype.scr = function(X,Y) {
 	var pen = this;
 	return scr(X,Y);
 };
-function rot(r) {
+function rot(r,R) {
+	if (R) {
+		rot(-rots);
+		return rot(r);
+	}
 	if (r===undefined) {
 		rot(-rots*Math.PI/180);
 		rots = 0;
@@ -345,11 +382,15 @@ function rot(r) {
 	rots += r?r:0;
 	return rots %= 360;
 }//rot
-CanvasRenderingContext2D.prototype.rot = function(r) {
+CanvasRenderingContext2D.prototype.rot = function(r,R) {
 	var pen = this;
-	return rot(r);
+	return rot(r,R);
 };
-function scl(X,Y) {
+function scl(X,Y,r) {
+	if (r) {
+		scl(-scls[0],-scls[1]);
+		return scl(X,Y);
+	}
 	if (X===undefined) {
 		scl(100/scls[0],100/scls[1]);
 		scls = [100,100];
@@ -371,11 +412,15 @@ function scl(X,Y) {
 	}
 	return scls;
 }//scl
-CanvasRenderingContext2D.prototype.scl = function(X,Y) {
+CanvasRenderingContext2D.prototype.scl = function(X,Y,r) {
 	var pen = this;
 	return scl(X,Y);
 };
-function trn(X,Y) {
+function trn(X,Y,r) {
+	if (r) {
+		trn(-trns[0],-trns[1]);
+		return trn(X,Y);
+	}
 	if (X===undefined) {
 		return trn(-trns[0],-trns[1]);
 	}
@@ -386,7 +431,7 @@ function trn(X,Y) {
 	}
 	return trns;
 }//trn
-CanvasRenderingContext2D.prototype.trn = function(X,Y) {
+CanvasRenderingContext2D.prototype.trn = function(X,Y,r) {
 	var pen = this;
 	return trn(X,Y);
 };
@@ -443,11 +488,14 @@ CanvasRenderingContext2D.prototype.grd = function(x,y,r,x1,y1,r1,pt) {
 	return grd(x,y,r,x1,y1,r1,pt);
 };
 function img(src,par) {
-	im = new Image();
+	var im = new Image(src);
 	if ((!/^file:\/{2}/gmi.test(src))&&!par) {
 		im.crossOrigin = "Anonymous";
 	}
 	im.src = src;
+	loads++;
+	im.addEventListener("load",function() {if(!--loads){dispatchEvent(onimgs)}dispatchEvent(onimg)},{once:true,passive:false});
+	im.addEventListener("error",function() {if(!--loads){dispatchEvent(onimgs)}dispatchEvent(onimg)},{once:true,passive:false});
 	im.draw = function(xx,yy,dx,dy,rep) {
 		if (dx===undefined&&xx!==undefined) {
 			pen.drawImage(this,xx?xx:xx=0,yy?yy:yy=0);
@@ -482,7 +530,7 @@ function grb(cn) {
 	if (typeof module==="undefined") {
 		document.head.appendChild(module = document.createElement("script"));
 		module.src = "https://dl.dropboxusercontent.com/s/i8vpm0vlhrlc1en/Module.js?dl=1&raw=1";
-		setTimeout(grb(cn),300);
+		setTimeout(module.onload=function(){grb(cn)},500);
 	} else {
 		if (typeof cn=="string") {
 			cn = ele(cn);
@@ -714,8 +762,8 @@ function edt(dt,ed,pre,post) {
 	for (var stp = 0; stp < dt.data.length; stp+=4) {
 		var Red = red = dt.data[stp], Green = green = dt.data[stp+1], Blue = blue = dt.data[stp+2], Alpha = alpha = dt.data[stp+3], width = dt.width, height = dt.height;
 		var grey = (red+blue+green)/3, clr = red>blue?(red>green?"red":"green"):(blue>green?"blue":"green");
-		clr = grey>=235?"white":(grey<=20?"black":clr);
-		var Grey = Math.abs(red-grey)<=10&&Math.abs(green-grey)<=10&&Math.abs(blue-grey)<=10&&grey>=10&&grey<=245;
+		clr = grey>=230?"white":(grey<=20?"black":clr);
+		var Grey = Math.abs(red-grey)<=10&&Math.abs(green-grey)<=10&&Math.abs(blue-grey)<=10&&grey>=10&&grey<=240;
 		var yellow = (red+green)/2>blue+10&&red>blue&&green>blue, purple = (red+blue)/2>green+10&&red>green&&blue>green, cyan = (green+blue)/2>red+10&&green>red&&blue>red;
 		if (yellow) {
 			clr = "yellow";
@@ -745,6 +793,20 @@ CanvasRenderingContext2D.prototype.edt = function(dt,ed,pre,post) {
 ImageData.prototype.edt = function(ed,pre,post) {
 	return this.data = edt(this,ed,pre,post).data;
 };
+function D(x,y,z) {
+	this.X = this.x = x
+	this.Y = this.y = y
+	this.Z = this.z = z
+	this.t = function(c) {
+		var x = deg(c[3]), y = deg(c[4]), z = deg(c[5]), X = this.x-c[0], Y = this.y-P[1], Z = this.z-P[2]
+		var nc = [Math.cos(y)*(Math.sin(z)*Y+Math.cos(z)*X)-Math.sin(y)*Z, Math.sin(x)*(Math.cos(y)*Z+Math.sin(y)*(Math.sin(z)*Y+Math.cos(z)*X))+Math.cos(x)*(Math.cos(z)*Y-Math.sin(z)*X), Math.cos(x)*(Math.cos(y)*Z+Math.sin(y)*(Math.sin(z)*Y+Math.cos(z)*X))-Math.sin(x)*(Math.cos(z)*Y-Math.sin(z)*X)]
+		this.X = nc[0]
+		this.Y = nc[1]
+		this.Z = nc[2]
+		return nc
+	}//t
+	return this
+}//D
 function hlpc() {
 	//<script src=https://dl.dropboxusercontent.com/s/iqx2kzfiguvp44y/Canvas.js?dl=1&raw=1></script>
 	//<script src="https://gist.github.com/ValentinHacker/8ce917a26b8779ea03a4cfd01ef07212.js"></script>
@@ -757,10 +819,12 @@ function hlpc() {
 	ln(x,!y,!X,!Y) -> draw line from pen position (or (X,Y) if set) to (x,y)
 	stl(!color,!(stroke/fill)) -> change paint (leave arguement blank for random color)
 	wdt(!width) -> set line width (leave blank for random between 1 and 20)
-	txt(text,x,y,!fill/stroke) -> draw text
+	txt(text,x,y,!fill/stroke,style,align,baseline,width) -> draw text
 	cur(x1,y1,x2,y2,x,y) -> bezier curve
 	cur (x,y,x1,y1) -> quadratic curve
 	ark(x,x,radius,startAngle,endAngle,!arc/tangentArc,!X,!Y) -> circle
+	ell(x,y,rx,ry) -> ellipsis
+	pol(x,y,r,s,sa,a) -> polygon
 	rct(x,y,dx,dy,!(store/fill/stroke)) -> rectangle (undefined=store,0/false/null/""=stroke,1/true=fill)
 	stk(!fill/stroke) -> stroke
 	grd(x,y,dx,dy,"0:white,1:black") -> linear gradient
@@ -804,5 +868,7 @@ function hlpc() {
 	un -> measurement unit [x/Xx,y/Yy]
 	dif -> smallest dimension of page
 	Dif -> smallest dimension of screen
+	DIF -> smallest dimension of canvas
+	off -> canvas offset [x,y]
 	auto -> true/false defines if stk() and beg() happen automatically */
 }//hlpc
