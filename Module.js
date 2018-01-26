@@ -1,5 +1,6 @@
-var t = [], crd = [], empty = tick = function(){}, tmp = this, err = "";
-module = new Object();
+err = "";
+try{var t = [], coor = [], empty = tick = function(){}, tmp = this;
+const module = new Object();
 X = innerWidth;
 Y = innerHeight;
 Xx = screen.width;
@@ -9,18 +10,40 @@ dif = X>Y?Y:X;
 doc = document;
 loc = location;
 csl = console;
+nav = navigator;
 Win = this;
-auto = true;
-nul = function(){};
+if(typeof auto=="undefined") auto = true;
+/*  <true> : manual becomes automated,
+	strict : getters/setters,
+	heavy : slow funcs replace normal funcs,
+	light : fast funcs replace normal ones,
+	nocenter : transform funcs do not affect each other,
+	fill : canvas auto ctx.fill(), 
+	stroke : canvas auto ctx.stroke(),
+	full : canvas auto fullscreen, 
+	unlock : canvas funcs keep previous path,
+	lock : canvas funcs always begin new paths - auto initial centering
+*/
+if (typeof Auto=="undefined") Auto = new Number(0);
+/*
+	Auto |= Constant //add once
+	Auto ^= Constant //toggle
+	(Auto & Constant) == Constant //check
+	Auto &= ~Constant //remove once
+*/
 Sec = Millis = millis = 0;
+const AUTO = new Object(), nul = function(){}, mobile = /android|iphone|ipod|ipad|tablet|smartphone|ios/gmi.test(UA=navigator.userAgent), falseReg = /^(false|null|""|''|0|off|no|[]|{}|``|undefined|NaN|)$/gmi;
+Object.defineProperties(AUTO,{STRICT:{value:1,writable:false,configurable:false},HEAVY:{value:2,writable:false,configurable:false},LIGHT:{value:4,writable:false,configurable:false},NOCENTER:{value:8,writable:false,configurable:false},FILL:{value:16,writable:false,configurable:false},STROKE:{value:32,writable:false,configurable:false},FULL:{value:64,writable:false,configurable:false},UNLOCK:{value:128,writable:false,configurable:false},LOCK:{value:256,writable:false,configurable:false}});
 alph = "abcdefghijklmnopqrtsuvwxyz";
 ALPH = alph.toUpperCase();
 Alph = (alph+ALPH+"0123456789");
 online = navigator.onLine;
+dat = "";
+crd = [];
 prefix = ["moz","webkit","o","ms","khtml","ie"];
-mobile = /android|iphone|ipod|ipad|tablet|smartphone|ios/gmi.test(UA=navigator.userAgent);
 addEventListener("resize",rel);
 addEventListener("load",rel);
+addEventListener("load",win)
 addEventListener("online",rel);
 addEventListener("offline",rel);
 addEventListener("error",function(e) {
@@ -104,7 +127,7 @@ function act(elem,mode) {
 		act(ele(),elem);
 		return;
 	}
-	mode = mode===undefined?"#$%":mode;
+	mode = !mode?"#$%":mode;
 	var pat;
 	if (/\$/gmi.test(mode)&&(pat=elem.innerHTML.match(/\${2}(.|\n)*?\${2}/gmi))) {
 		for (var stp = 0; stp < pat.length; stp++) {
@@ -133,7 +156,7 @@ function act(elem,mode) {
 	}
 }//act
 HTMLElement.prototype.act = String.prototype.act = function(mode) {
-	mode = mode?mode:"$%#";
+	mode = !mode?"#$%":mode;
 	if (typeof this=="string"||this instanceof String) {
 		if (/(#|\$|%|&)/gmi.test(this)) {
 			act(mode,this);
@@ -142,11 +165,12 @@ HTMLElement.prototype.act = String.prototype.act = function(mode) {
 		}
 		return;
 	}
-	act(this,mode?mode:"$%#");
+	act(this,mode);
 };
 Array.prototype.act = NodeList.prototype.act = function(mode) {
+	mode = !mode?"#$%":mode;
 	this.forEach(function(val) {
-		act(val,mode?mode:"$%#");
+		act(val,mode);
 	});
 };
 function ele(val,bl,comm,pr) {
@@ -270,9 +294,9 @@ Array.prototype.mas = NodeList.prototype.mas = function(pat,cond) {
 function cmp(arr) {
 	var nar = [];
 	for (var mat = 0; mat < arr.length; mat++) {
-		if (arr[mat]) {
+		if (arr[mat]!==undefined) {
 			if (typeof arr[mat]!=="object"||arr[mat].length===undefined) {
-				nar = nar.concat(arr[mat]);
+				nar.push(arr[mat]);
 			} else {
 				nar = nar.concat(cmp(arr[mat]));
 			}
@@ -280,8 +304,33 @@ function cmp(arr) {
 	}
 	return nar;
 }//cmp
-Array.prototype.cmp = function() {
-	return cmp(this);
+NodeList.prototype.cmp = Array.prototype.cmp = function(dpt,rev) {
+	var nar = [];
+	if (!rev) {
+		if (!dpt) {
+			return this.inh(cmp(this));
+		}
+		while (dpt-->0) {
+			this.each(function(val,ind,arr) {
+				if (typeof val=="object") {
+					nar = nar.concat(val);
+				} else {
+					nar.push(val);
+				}
+			});
+			this.inh(nar);
+			nar = [];
+		}
+	} else {
+		while (dpt-->0) {
+			rep(this.length/rev,(function(stp) {
+				nar.push(this.slice(stp*rev,rev+stp*rev));
+			}).bind(this));
+		}
+		this.inh(nar);
+		nar = [];
+	}
+	return this;
 };
 function dbg(tr) {
 	if (tr===undefined) {
@@ -370,7 +419,7 @@ function xtr(elem,typ) {
 		}
 	}
 	if (!typ) {
-		mas("clearInterval(@)",t);
+		t.forEach(function(tt){clearInterval(tt)});
 		mas("doc.write([@,'<br>-----------<br>'].join(''))",mas("@.replace(/(src|href)=(\"|\')?/gmi,'')",elem.outerHTML.match(/(src|href)=(\"|\')?.+?(?=(\"|\'|( *?)?\>))/gmi)));
 		doc.close();
 		dbg(true);
@@ -381,7 +430,7 @@ function xtr(elem,typ) {
 	} else {
 		return elem.outerHTML.match(/(src|href)=(\"|\')?.+?(?=(\"|\'|( *?)?\>))/gmi);
 	}
-}//xtr
+}//xtr  USES MAS()
 HTMLElement.prototype.xtr = String.prototype.xtr = function(typ) {
 	return xtr(this,typ);
 };
@@ -565,8 +614,10 @@ Array.prototype.rnd = function(rd) {
 	}
 	return this[ind];
 };
-swt = function swt() {
-	if (/heavy/gmi.test(auto.toString())) {
+Object.defineProperty(window,"Rnd",{get:function(){return rnd()}});
+function swt(a) {
+	if (a) auto = auto.toString()+a;
+	if (/heavy/gmi.test(auto.toString())||(Auto&AUTO.HEAVY)==AUTO.HEAVY) {
 		rnd = function(frm,to,rd) {
 			if (frm===undefined) {
 				return "rgba("+Math.rnd(255)+","+Math.rnd(255)+","+Math.rnd(255)+","+Math.rnd(0,1,1)+")";
@@ -579,7 +630,7 @@ swt = function swt() {
 				return !rd||[frm,to].every(function(val){return !/\./gmi.test(val.toString())})?Math.round(Math.random()*(to-frm)+frm):(Math.random()*(to-frm)+frm);
 			}
 		};
-	} else if (/light/gmi.test(auto.toString())) {
+	} else if (/light/gmi.test(auto.toString())||(Auto&AUTO.LIGHT)==AUTO.LIGHT) {
 		rnd = function(frm,to,rd) {
 			if (frm===undefined) {
 				return "#"+Math.round(Math.random()*16777215).toString(16);
@@ -588,6 +639,48 @@ swt = function swt() {
 			}
 		};
 	}
+	if ((!/strict/gmi.test(auto.toString())&&(Auto&AUTO.STRICT)!=AUTO.STRICT)&&Object.prototype.__defineGetter__&&Object.prototype.__defineSetter__) {
+		try {
+			if(!Array.prototype.datatype){Array.prototype.__defineGetter__("datatype",function() {
+				var type = 0;
+				for (var stp = 0; stp < this.length; stp++) {
+					if ((typeof this[stp]=="number"&&!type)||(typeof this[stp]=="string"&&type<2)||((this[stp] instanceof Array)&&type<3)||((this[stp] instanceof Object)&&type<4)) {
+						type++
+					}
+				}
+				return type==1?"Number":(type==2?"String":(type==3?"Array":"Object"));
+			});
+			Array.prototype.__defineSetter__("datatype",function() {
+				var cls = eval(this.datatype), nar = [];
+				this.each((function(val,ind,arr){
+					nar.push(new cls(val));
+				}).bind(this));
+				this.inh(nar);
+				return this;
+			});}
+			if(!Array.prototype.Sum)Array.prototype.__defineGetter__("Sum",function(){return this.sum();});
+			if(!Array.prototype.Fac)Array.prototype.__defineGetter__("Fac",function(){return this.fac()});
+			if(!Array.prototype.Pure)Array.prototype.__defineGetter__("Pure",function(){return this.pure()});
+			if(!Array.prototype.Cmp)Array.prototype.__defineGetter__("Cmp",function(){return cmp(this)});
+			if(!Array.prototype.Rnd)Array.prototype.__defineGetter__("Rnd",function(){return this.rnd()});
+			if(!Array.prototype.Shf)Array.prototype.__defineGetter__("Shf",function(){return this.clone().shf()});
+			if(!Array.prototype.Max)Array.prototype.__defineGetter__("Max",function(){return this.max()});
+			if(!Array.prototype.Min)Array.prototype.__defineGetter__("Min",function(){return this.min()});
+			if(!Object.prototype._ins)Object.prototype.__defineGetter__("_ins",function(){return this.ins()});
+			if(!Object.prototype._Ins)Object.prototype.__defineGetter__("_Ins",function(){return this.Ins()});
+			if(!Object.prototype._prp)Object.prototype.__defineGetter__("_prp",function(){return Object.getOwnPropertyNames(this)});
+			if(!Object.prototype.Values)Object.prototype.__defineGetter__("Values",function(){return this.values()});
+			if(!Object.prototype.Keys)Object.prototype.__defineGetter__("Keys",function(){return Object.keys(this)});
+			if(!Object.prototype.string)Object.prototype.__defineGetter__("string",function(){return this.toString()});
+			if(!Object.prototype.Last)Object.prototype.__defineGetter__("Last",function(){return this.last()});
+			if(!Object.prototype.First)Object.prototype.__defineGetter__("First",function(){return this.first()});
+			if(!Object.prototype.Alt)Object.prototype.__defineGetter__("Alt",function(){return this.alt()});
+			if(!Object.prototype.Bool)Object.prototype.__defineGetter__("Bool",function(){return this.bool()});
+			if(!Image.prototype.Data)Image.prototype.__defineGetter__("Data",function(){return this.data()});
+			if(!Number.prototype.Sig)Number.prototype.__defineGetter__("Sig",function(){return this.sig()});
+		} catch(e) {}
+	}
+	return auto;
 }//swt
 swt();
 function dst(x,y,d) {
@@ -598,7 +691,7 @@ function dst(x,y,d) {
 	} else if (x!==undefined&&y!==undefined&&d!==undefined) {
 		return Math.atan2(y,x)*180/Math.PI;
 	}
-	console.warn("Invalid arguements in dst()");
+	console.warn("Invalid arguments in dst()");
 	return false;
 }//dst
 Math.dst = dst;
@@ -608,24 +701,44 @@ Number.prototype.dst = function(a) {
 	}
 	return Math.sqrt(Math.pow(this,2)-Math.pow(a,2));
 };
-function Dst(x,y,X,Y) {
-	return dst(x-X,y-Y);
+function Dst(x,y,X,Y,d) {
+	return dst(x-X,y-Y,d);
 }//Dst
 Math.Dst = Dst;
+function dst3(x,y,z,d) {
+	if (d===undefined) {
+		return Math.sqrt(Math.pow(x,2)+Math.pow(y,2)+Math.pow(z,2));
+	} else if ((x!==undefined&&y!==undefined)&&(x!==null&&y!==null)&&d===undefined) {
+		return Math.sqrt(Math.pow(d,2)-Math.pow(y,2)-Math.pow(x,2));
+	} else if ((x!==undefined&&z!==undefined)&&(x!==null&&z!==null)&&d===undefined) {
+		return Math.sqrt(Math.pow(d,2)-Math.pow(z,2)-Math.pow(x,2));
+	} else if ((z!==undefined&&y!==undefined)&&(y!==null&&z!==null)&&d===undefined) {
+		return Math.sqrt(Math.pow(d,2)-Math.pow(y,2)-Math.pow(z,2));
+	} else if ([x,y,z,d].every(function(val){return val!==undefined})) {
+		return [Math.atan2(y,z)*180/Math.PI,Math.atan2(z,x)*180/Math.PI,Math.atan2(y,x)*180/Math.PI];
+	}
+	console.warn("Invalid arguments in dst3()");
+	return false;
+}//dst3
+Math.dst3 = dst3;
+function Dst3(x,y,z,X,Y,Z,d) {
+	return dst3(x-X,y-Y,z-Z,d);
+}//Dst3
+Math.Dst3 = Dst3;
 function col(x,y,X,Y,dx,dy,dX,dY,r,s) {
-	if (dY!==undefined&&r===undefined) {
+	if (dY!==undefined&&r===undefined&&s===undefined) {
 		var bx = Math.min(x,X,x+dx,X+dX);
 		var by = Math.min(y,Y,y+dy,Y+dY);
 		var Bx = Math.max(x,X,x+dx,X+dX);
 		var By = Math.max(y,Y,y+dy,Y+dY);
 		return Math.abs(Bx-bx)<=dx+dX&&Math.abs(By-by)<=dy+dY;
-		//box-box
-	} else if (dX!==undefined&&r===undefined) {
+		//box-box x,y,X,Y,dx,dy,dX,dY
+	} else if (dX!==undefined&&r===undefined&&s===undefined) {
 		return dst(x+X/2-dx,y+Y/2-dy)<=dX+dst(X/2,Y/2);
-		//box-circle
-	} else if (r===undefined) {
-		return dst(x-Y,y-dx)<=X+(dy?dy:0);
-		//circle/point-circle/point
+		//box-circle 7
+	} else if (r===undefined&&s===undefined) {
+		return dst(x-Y,y-(dx?dx:0))<=X+(dy?dy:0);
+		//circle/point-circle/point <=6 >=4
 	} else if (s!==undefined) {
 		var o1 = (180-(360/dx))/2;
 		var p1 = Lim((dst(dy-x,dX-y,1)-Y),0,360)%(360/dx);
@@ -634,24 +747,65 @@ function col(x,y,X,Y,dx,dy,dX,dY,r,s) {
 		var p2 = Lim((dst(x-dy,y-dX,1)-r),0,360)%(360/s);
 		var r2 = R/Math.sin(deg(180-p2-o2))*Math.sin(deg(o2));
 		return dst(x-dy,y-dX)<=r1+r2;
-		//polygon-polygon
-	} else {
+		//polygon-polygon 10
+	} else if (r==1) {
 		var o1 = (180-(360/dx))/2;
 		var p1 = Lim((dst(dy-x,dX-y,1)-Y),0,360)%(360/dx);
 		var r1 = X/Math.sin(deg(180-p1-o1))*Math.sin(deg(o1));
 		return dst(x-dy,y-dX)<=r1+dY;
-		//polygon-circle
+		//polygon-circle 9
+	} else if (r==2) {
+		var x1 = x, y1 = y, x2 = X, y2 = Y, X1 = dx, Y1 = dy, X2 = dX, Y2 = dY;
+		if (x1!=x2&&X1!=X2) {
+			var l = (y1-y2)/(x1-x2), L = (Y1-Y2)/(X1-X2);
+			var v = y1-l*x1, V = Y1-l*X1;
+			if (l!=L) {
+				var x = (V-v)/(l-L);
+				var y = l*x+v;
+				if (x>=Math.min(x1,x2)&&x<=Math.max(x1,x2)&&x>=Math.min(X1,X2)&&x<=Math.max(X1,X2)&&y>=Math.min(y1,y2)&&y<=Math.max(y1,y2)&&y>=Math.min(Y1,Y2)&&y<=Math.max(Y1,Y2)) {
+					return true;
+				} else {
+					return false;
+				}
+			} else if (v==V) {
+				return true;
+			} else {
+				return false;
+			}
+		} if ((x1==x2||X1==X2)&&(x1!=x2||X1!=X2)) {
+			var h = x1!=x2?[x1,y1,x2,y2]:[X1,Y1,X2,Y2];
+			var x = x1==x2?x1:X1;
+			var l = (h[2]-h[3])/(h[0]-h[1])
+			var y = h[1]-l*h[0];
+			if (x>=Math.min(x1,x2)&&x<=Math.max(x1,x2)&&x>=Math.min(X1,X2)&&x<=Math.max(X1,X2)&&y>=Math.min(y1,y2)&&y<=Math.max(y1,y2)&&y>=Math.min(Y1,Y2)&&y<=Math.max(Y1,Y2)) {
+				return true;
+			}
+			return false;
+		} else if (x1==x2&&X1==X2&&x1==X1) {
+			var x = x1;
+			if (y1<=Math.max(Y1,Y2)||y1>=Math.min(Y1,Y2)||y2<=Math.max(Y1,Y2)||y2>=Math.min(Y1,Y2)) {
+				return true;
+			}
+			return false;
+		}
+		//line-line 9
 	}
-	//TODO: line-line
+	return false;
+	//TODO: 3D  O_O
 }//col
 Math.col = col;
+function col3(x,y,z,r,X,Y,Z,R) {
+	return Dst3(x,y,z,X,Y,Z)<=r+R;
+	//circle/point-circle/point
+}//col3
+Math.col3 = col3;
 function cn() {
 	var can = doc.head.appendChild(doc.createElement("script"));
 	can.src = "https://dl.dropboxusercontent.com/s/iqx2kzfiguvp44y/Canvas.js?dl=1&raw=1";
 	can = doc.head.appendChild(doc.createElement("link"));
 	can.href = "https://dl.dropboxusercontent.com/s/fvnin56m7ujzd5u/Main.css?dl=1&raw=1";
 	can.rel = "stylesheet";
-}//can
+}//cn
 //^deprecated
 function rep(cnt,com,ini) {
 	var val = [];
@@ -664,8 +818,8 @@ function rep(cnt,com,ini) {
 	}
 	return val.filter(function(va){return va!==undefined;});
 }//rep
-String.prototype.rep = Function.prototype.rep = function(cnt,ini) {
-	return rep(cnt,this,ini);
+Number.prototype.rep = String.prototype.rep = Function.prototype.rep = function(cnt,ini) {
+	return rep(typeof this=="number"?this:cnt,typeof this=="number"?cnt:this,ini);
 };
 function deg(dg,rd) {
 	if (typeof dg!="string"&&!rd) {
@@ -686,11 +840,12 @@ function fon(tg) {
 		}
 		return;
 	}
-	fl = crt("meta",head);
+	fl = crt("meta",document.head);
 	fl.name = "viewport";
 	fl.content = "width=device-width,initial-scale=1.0,maximum-scale=1.0,minimum-scale=1.0,user-scalable=no";
 	fl.id = "mmax";
 }//fon
+//^deprecated
 function per(pr,mx,gr) {
 	var gr = gr||100;
 	return pr*mx/gr;
@@ -702,18 +857,26 @@ Number.prototype.per = function(pr,gr) {
 function crt(e,el) {
 	if (typeof el=="string") {
 		el = ele(el);
+	} else if (e instanceof Array) {
+		var nar = [];
+		e.forEach(function(val) {
+			nar.push(crt(val,el));
+		});
+		return nar;
+	} else if ((el instanceof Array)||(el instanceof NodeList)) {
+		var nar = [];
+		el.forEach(function(val) {
+			nar.push(crt(e,val));
+		});
+		return nar;
 	}
-	return (el||ele()).appendChild(doc.createElement(e));
+	return (el||ele()).appendChild(document.createElement(e));
 }//crt
-HTMLElement.prototype.crt = String.prototype.crt = function(e) {
+HTMLElement.prototype.crt = NodeList.prototype.crt = function(e) {
 	return crt(e,this);
 };
-NodeList.prototype.crt = Array.prototype.crt = function(e) {
-	var nar = [];
-	for (eac in this) {
-		nar.push(crt(e,eac));
-	}
-	return nar;
+Array.prototype.crt = String.prototype.crt = function(el) {
+	return crt(this,el);
 };
 function ajx(u,f,p,d,syn,user,pass) {
 	var aj = new XMLHttpRequest()||new ActiveXObject("Microsoft.XMLHTTP");
@@ -755,19 +918,23 @@ function con(comm,init) {
 	} catch(e) {}
 	setTimeout(con,init||1,comm||" ",init||1);
 }//con
-HTMLElement.prototype.rem = String.prototype.rem = function() {
-	rem(this);
+Number.prototype.con = String.prototype.con = Function.prototype.con = function(init) {
+	return con(typeof this=="number"?init:this,typeof this=="number"?this:init);
 };
-NodeList.prototype.rem = Array.prototype.rem = function() {
-	this.forEach(function(val) {
-		rem(val);
-	});
+NodeList.prototype.rem = Array.prototype.rem = HTMLElement.prototype.rem = String.prototype.rem = function() {
+	rem(this);
 };
 function rem(el) {
 	if (typeof el=="string") {
 		el = ele(el);
+	} else if ((el instanceof Array)||(el instanceof NodeList)) {
+		var nar = [];
+		el.forEach(function(val) {
+			nar.push(rem(val));
+		});
+		return nar;
 	}
-	el.parentNode.removeChild(el);
+	return el.parentNode.removeChild(el);
 }//rem
 function ins(el) {
 	var arr = [];
@@ -777,13 +944,24 @@ function ins(el) {
 	return arr;
 }//ins
 function Ins(el) {
-	return JSON.stringify(el);
+	return JSON.stringify(el)||el;
 }//Ins
 Object.prototype.prp = function(ind) {
 	return this[Object.keys(this)[ind?Number(ind):0]];
 };
 Object.prototype.Prp = function(ind) {
 	return Object.keys(this)[ind?Number(ind):0];
+};
+Object.prototype.values = function() {
+	return Object.keys(this).filter(function(val){return val!="Values"?true:false}).map((function(val) {
+		return this[val];
+	}).bind(this));
+};
+Object.prototype.keys = function() {
+	return Object.keys(this);
+};
+Object.values = function values(obj) {
+	return obj.values();
 };
 Object.prototype.ins = function() {
 	return ins(this);
@@ -825,7 +1003,7 @@ function sig(n) {
 	}
 	return n/Math.abs(n);
 }//sig
-Number.prototype.sig = function() {
+String.prototype.sig = Number.prototype.sig = function() {
 	return sig(this);
 };
 if (!Math.sign) {
@@ -847,6 +1025,10 @@ Array.prototype.sum = function() {
 	});
 	return tmp;
 };
+//^deprecated+fac
+if (!Array.prototype.reduce) {
+	Array.prototype.reduce = Array.prototype.sum;
+}
 Math.fac = function(lst) {
 	var acc = 1;
 	while (lst) {
@@ -862,27 +1044,72 @@ Array.prototype.fac = function() {
 	});
 	return tmp;
 };
-Number.prototype.sig = String.prototype.sig = function() {
-	return sig(this);
-};
-Array.prototype.rmv = String.prototype.rmv = function(elm) {
+Array.prototype.rmv = String.prototype.rmv = function(elm,n) {
 	var arr = this.split("");
 	if (typeof elm!="number"&&this.indexOf(elm)<0) {
 		return this;
 	}
-	arr.splice(typeof elm=="number"?elm:this.indexOf(elm),1);
+	arr.splice(typeof elm=="number"&&!n?elm:this.indexOf(elm),1);
 	if (this instanceof String) {
 		return arr.join("");
 	}
 	return arr;
 };
+Array.prototype.add = function add(elm) {
+	if (!this.has(elm)) {
+		this.push(elm);
+	}
+};
+Array.prototype.has = function has(elm) {
+	return this.indexOf(elm)>=0;
+};
+if (!Array.prototype.includes) {
+	Array.prototype.includes = Array.prototype.has;
+}
+Array.prototype.togg = function(elm) {
+	if (this.has(elm)) {
+		return this.rmv(elm);
+	}
+	return this.add(elm);
+};
+Array.prototype.flt = function() {
+	var nar = [];
+	this.forEach(function(val) {
+		nar.add(val);
+	});
+	return this.inh(nar);
+};
+function flt(elm) {
+	var nar = [];
+	elm.forEach(function(val) {
+		nar.add(val);
+	});
+	return nar;
+}//flt
 Array.prototype.pure = function() {
-	return this.join(",").split(",")||[];
+	return this.concat([])||[];
 };
 if (!Array.prototype.clone) {
 	Array.prototype.clone = Array.prototype.pure;
 }
 //^deprecated
+Array.prototype.inherit = Array.prototype.inh = function(array) {
+	this.each((function(val,ind,arr) {
+		this[ind] = array[ind];
+		while (this.last()===undefined&&this.length) {
+			this.pop();
+		}
+	}).bind(this));
+	return this;
+};
+if (!Array.prototype.copy) {
+	Array.prototype.copy = function(ar) {
+		if (!ar) {
+			return this.clone();
+		}
+		return this.inh(ar);
+	};
+}
 Image.prototype.data = function() {
 	var can = document.createElement("canvas");
 	can.width = this.width;
@@ -927,7 +1154,7 @@ function Lim(n,m,M) {
 	n = Number(n);
 	m = Number(m);
 	M = Number(M);
-	return n<m?M-Math.abs(m-n):(n>M?m+Math.abs(M-n):n);
+	return n<m?M-Math.abs(m-n)%m:(n>M?m+Math.abs(M-n)%M:n);
 }
 Math.Lim = Lim;
 Object.prototype.Lim = String.prototype.Lim = Number.prototype.Lim = function(min,max) {
@@ -940,9 +1167,9 @@ Array.prototype.Lim = function(min,max) {
 	return this;
 };
 function bool(dt) {
-	return dt==="true"||dt==="1"?true:(dt==="false"||dt==="0"||dt==="null"||dt==="undefined"?false:Boolean(dt));
+	return falseReg.test(dt);
 }//bool
-String.prototype.bool = function() {
+Object.prototype.bool = function() {
 	return bool(this.toString());
 };
 function par(fun,num,nam,cod) {
@@ -951,14 +1178,51 @@ function par(fun,num,nam,cod) {
 	});
 	return eval(fun+"=function "+fun+"("+arr.join(",")+","+nam+","+nam+"0){"+nam+"=["+arr.join(",")+"];"+nam+"0=['"+fun+"',"+num+"];"+(typeof cod=="string"?cod:"return ("+cod+")()")+"}");
 }//par
-Math.Min = function min(n) {
+//^deprecated
+Min = Math.Min = function Min(n) {
 	return Math.min.apply(Math,n);
 };
-Math.Max = function max(n) {
+Max = Math.Max = function Max(n) {
 	return Math.max.apply(Math,n);
+};
+Array.prototype.max = function() {
+	return Max(this);
+};
+Array.prototype.min = function() {
+	return Min(this);
+};
+anl = Math.anl = function anl(n,a,b,A,B) {
+	var df = 100*(n-Math.min(a,b))/(Math.max(a,b)-Math.min(a,b));
+	return Math.min(A,B)+per(df,Math.max(A,B)-Math.min(A,B));
+}//anl
+Number.prototype.anl = function(a,b,A,B) {
+	return anl(this,a,b,A,B);
+};
+{min = Math.min;
+max = Math.max;
+sqrt = Math.sqrt;
+cbrt = Math.cbrt;
+sin = Math.sin;
+cos = Math.cos;
+pow = Math.pow;}
+if (Math._prp) {
+	Math._prp.forEach((function(val,ind,arr){
+		if (!this[val]) {
+			this[val] = Math[val];
+		}
+	}).bind(this));
+}
+function xor(a,b) {
+	return (a||b)&&!(a&&b);
+}//xor
+Boolean.prototype.xor = function(a) {
+	return xor(this,a);
 };
 Object.prototype.last = function(off) {
 	return this[Object.keys(this)[Object.keys(this).length-1-(off?off:0)]];
+};
+Object.prototype.first = function(off) {
+	return this[Object.keys(this)[off?off:0]];
 };
 if (!Array.prototype.fill) {
 	Array.prototype.fill = function(vl,frm,to) {
@@ -1025,6 +1289,9 @@ Object.prototype.each = Object.prototype.foreach = Object.prototype.forEach = Ar
 Number.prototype.forEach = function(func) {
 	return this.toString().forEach(func);
 };
+String.prototype.each = function(c) {
+	return c(this);
+};
 input = ask = prompt;
 accept = choose = confirm;
 popup = Alert = alert;
@@ -1034,58 +1301,205 @@ String.prototype.splice = function(str,end) {
 Array.prototype.split = function() {
 	return this;
 };
+Matrix = function Matrix(array) {
+	if (!(this instanceof Matrix)) {
+		return new Matrix(array);
+	}
+	array.each(function(val,ind,arr) {
+		while (val.length<arr[0].length) {
+			val.push(0);
+		}
+	});
+	this.m = array;
+	this.row = this.m.length;
+	this.column = this.m[0].length;
+	this.values = cmp(this.m);
+	Object.defineProperty(this,"_m",{get:function(){return this.values.copy().cmp(1,this.row=this.m.length)},set:function(val){this.m=val;this.values=cmp(this.m);this.row=this.m.length;this.column=this.m[0].length}});
+	Object.defineProperty(this,"_row",{get:function(){return this.m.length},set:function(val){this.m=this.values.copy().cmp(1,this.values.length/val);this.row=this.m.length;this.column=this.m[0].length}});
+	Object.defineProperty(this,"_column",{get:function(){return this.m[0].length},set:function(val){this.m=this.values.copy().cmp(1,this.column=val);this.row=this.m.length}});
+	Object.defineProperty(this,"_values",{get:function(){return cmp(this.m)},set:function(val){this.values=val;this.m=this.values.copy().cmp(1,this.column);this.row=this.m.length;this.column=this.m[0].length}});
+	this.add = function(ad) {
+		if (!(ad instanceof Matrix)) {
+			this._values = this._values.map(function(val) {
+				return val+ad*1;
+			});
+		} else if (ad._row==1&&ad._column==this._column) {
+			this._values = this._values.map(function(val,ind) {
+				return val+ad._values[ind%ad._column]*1;
+			});
+		} else if (ad._row==this._row&&ad._column==this._column) {
+			this._values = this._values.map(function(val,ind) {
+				return val+ad._values[ind]*1;
+			});
+		}
+		return this;
+	};
+	this.mult = this.multiply = function(ad) {
+		if (!(ad instanceof Matrix)) {
+			this._values = this._values.map(function(val) {
+				return val*ad;
+			});
+		} else if (ad._row==1&&ad._column==this._column) {
+			this._values = this._values.map(function(val,ind) {
+				return val*ad._values[ind%ad._column];
+			});
+			this._m = this._values.clone().cmp(1,this._column);
+			return this._values.sum;
+		} else if (ad._row==this._row&&ad._column==this._column) {
+			this._values = this._values.map(function(val,ind) {
+				return val*ad._values[ind];
+			});
+			this._m = this._values.clone().cmp(1,this._column);
+			return this._values.sum;
+		}
+		return this;
+	};
+	this.trans = this.transpose = function() {
+		var tmp = this._row, nar = [];
+		this._row = this._column;
+		this._column = tmp;
+		rep(this._row,function(stp) {
+			nar.push([]);
+		});
+		this._m.each(function(val,ind) {
+			val.each(function(va,id) {
+				nar[id][ind] = va;
+			});
+		});
+		this._m = nar;
+		return this;
+	};
+	return this;
+}//Matrix
+function D(x,y,z) {
+	this.dx = this.X = this.x = x;
+	this.dy = this.Y = this.y = y;
+	this.Z = this.z = z;
+	this.c = [0,0,0,0,0,0];
+	this.e = {x:0,y:0,z:0};
+	this.t = function(c) {
+		this.c = c||this.c;
+		var x = deg(this.c[3]), y = deg(this.c[4]), z = deg(this.c[5]), X = this.x-this.c[0], Y = this.y-this.c[1], Z = this.z-this.c[2];
+		var nc = [Math.cos(y)*(Math.sin(z)*Y+Math.cos(z)*X)-Math.sin(y)*Z, Math.sin(x)*(Math.cos(y)*Z+Math.sin(y)*(Math.sin(z)*Y+Math.cos(z)*X))+Math.cos(x)*(Math.cos(z)*Y-Math.sin(z)*X), Math.cos(x)*(Math.cos(y)*Z+Math.sin(y)*(Math.sin(z)*Y+Math.cos(z)*X))-Math.sin(x)*(Math.cos(z)*Y-Math.sin(z)*X)];
+		this.X = nc[0];
+		this.Y = nc[1];
+		this.Z = nc[2];
+		this.T({x:c[0],y:c[1],z:c[2]});
+		return nc;
+	};
+	this.T = function(e) {
+		this.e = e||this.e;
+		if (this.Z) {
+			this.dx = this.e.z/this.Z*this.X-this.e.x;
+			this.dy = this.e.z/this.Z*this.Y-this.e.y;
+		}
+		return [this.dx,this.dy];
+	};
+	this.i = function(d) {
+		d = d||this;
+		this.x = d.X;
+		this.y = d.Y;
+		this.z = d.Z;
+		return d;
+	};
+	return this;
+}//D
 function hlp() {
 	//<script src=https://dl.dropboxusercontent.com/s/i8vpm0vlhrlc1en/Module.js?dl=1&raw=1></script>
-	//<script src=https://gist.github.com/ValentinHacker/968b0597d65836870644195c4322cf60.js></script>
 	alert(hlp);
-	/* win(string (command)) -> save current page state & custom commands (globals: dat = page data,Win = command(s))
-	ele(string (query),parent) object -> css query to a node e.x.: ele("#id.class tag[1],body*")
-	mas(string (command),array,condition (command)) array -> run command for each element of the array - element will take the place of "@" symbol(s) (you can append escape sequences to it to prohibit translation) e.x.: mas("clr(@,500)",ele("**"))
-	act(element) -> translate pseudocode : $$code$$ -> dynamically updated node - innerHTML = result of code - 'e' current element - strings must use single-quotes,%%code%% -> replaced with code's value,##code## -> single-run code - no returns,&&CSS$$ auto vendor-prefixes - e.x.:&&&filter:invert(90%);&transform:rotate(45deg);&&-- arguement is the owner-element of the pseudocode -- put pseudo-code inside HTML comments if you face any problems with translation...
-	dbg(show/hide (boolean)) -> show/hide debugging button (triggers console) - undefined = toggle
-	src(element) -> shows source code of element and allows editing
-	xtr(element) -> extracts href/src resources from element
-	cmp(array) -> converts multi-dimensional array to single-dinensional
-	mul(element,command) -> runs a CSS style for all vendors (prefixes) - vendor prefix will take the position of "@" symbol(s) e.x.: @transform:rotate(45deg)
-	cor(show/hide (boolean)) -> show/hide cursor coordinates (coordinates are stored inside global "crd",window events inside array coor[touchstart,touchmove,touchend,mousemove])
-	tog(element,milliseconds,value,callback (func)) -> togle visibility of an element
-	exp(element,milliseconds,array ([width,height]),callback) -> expand/collapse element
-	tra(element,milliseconds,array ([X,Y]),callback) -> reposition element
-	rnd(from,to) -> random number,leave arg(s) blank for random HEX
-	dst(x,y,d) -> provide (x,y) to calculate distance with pythagorean,provide (x||y,d) to calculate the missing parameter, (x,y,1) for degrees
-	Dst(x1,x2,y1,y2)
-	col(x,y,X,Y,dx,dy,dX,dY) -> check if boxes collide
-	col(X,Y,dx,dy,x,y,r) -> box-circle
-	col(x,y,r,X,Y,R) -> circle-circle
-	col(x,y,r,X,Y) -> circle-point
-	col(x,y,r,ro,s,X,Y,R,RO,S) -> perfect polygon collisions
-	cn() -> import canvas module and css extension
-	rep(count,command,initial) -> repeat a command
-	deg(degrees,radians) -> convert degrees <=> radians
-	per(percent,value,scale(100)) -> returns percentance
-	par(fun,num,nam,cod) -> create function dynamically with varying parameters...
-	crt(elementType[,parent]) -> create and append element
-	ajx(url,function,method,data) -> AJAX request,returned object src property holds URL
-	con(command,interval) -> run a command constantly
-	rem(elem) -> remove html element
-	(ins||Ins)(object) -> inspect object
-	Object.(prp||Prp)(index) -> grab object property (value||key) by index
-	dup(string,times) -> repeat string pattern
-	[Boolean.]alt([boolean]) -> alternate boolean value
-	sig(number) -> signum (+1/-1/0)
-	(Array||String).rmv(index) -> remove item from array/string
-	(String||Array||Number).wrp(wr) -> wrap between
-	Array.pure() -> grab array value instead of pointer
-	Image.data() -> export image as base64
-	Array.shf() -> shuffle
-	Array.last(index) -> last element
-	Number.lim(min,max) -> limit number range
-	Number.Lim(min,max) -> circular limit
-	Number.sum() -> sum of range (0,this)
-	Number.fac() -> factorial of range
-	bool(str) -> string boolean
-	par(func,num,nam,cod) -> create number with specific number of params... E.x. : par("func",5,"param",function(){alert(param2)}||"alert(param2)") - func=function func(param1,param2,param3,param4,param5,param,param0){alert(param2)}
-	Math.(Max||Min)(numarray) -> max/min num of array
-	Array.fill(value,from,to) -> fill polyfill */
+	/* rel() -> reload vars
+	Experimental: win(command <String>) -> save current page state & custom commands (globals: dat = page data,Win = command(s)).
+	Experimental: HTMLElement.act([mode|"#$%" <String>]) -> translate pseudocode : $$code$$ -> dynamically updated node - innerHTML = result of code - 'e' current element - strings must use single-quotes,%%code%% -> replaced with code's value,##code## -> single-run code - no returns,&&CSS$$ auto vendor-prefixes - e.x.:&&&filter:invert(90%);&transform:rotate(45deg);&&-- arguement is the owner-element of the pseudocode -- put pseudo-code inside HTML comments if you face any problems with translation...
+	Experimental: ele([cssQuery <String>, parent <HTMLElement>, condition <String>, stopPropagation <Boolean>]) object -> css query to a node e.x.: ele("#id.class tag[1],body*"), condition's @ is replaced to iteration object.
+	Experimental: Deprecated: Array.mas(command <String>, condition <String>) array -> run command for each element of the array - element will take the place of "@" symbol(s) in command (you can append escape sequences to it to prohibit translation) e.x.: mas("clr(@,500)",ele("**")).
+	Array.cmp[([depth <Number>, reversed <Number>])] -> converts multi-dimensional array to single-dinensional or opposite with specified depth.
+	Experimental: dbg([show/hide <Boolean>]) -> show/hide debugging button (triggers console) - undefined = toggle.
+	Experimental: cor([start/stop <Boolean>, show/hide <Boolean>]) -> show/hide cursor coordinates (coordinates are stored inside global "crd",window events inside array coor[touchstart,touchmove,touchend,mousemove]).
+	Experimental: HTMLElement.src() -> shows source code of element and allows editing.
+	Experimental: HTMLElement.xtr() -> extracts href/src resources from element.
+	Experimental: [(NodeList|Array|HTMLElement).]mul([element <HTMLElement>, ]command <String>) -> runs a CSS style for all vendors (prefixes) - vendor prefix will take the position of "@" symbol(s) on right-hand of assignment e.x.: transform="rotate(45deg)".
+	Experimental: [(NodeList|Array|HTMLElement).]tog([element <HTMLElement>, ]cmilliseconds <Number>, value <Number>[, callback <String>]) -> toggle visibility of an element.
+	Experimental: [(NodeList|Array|HTMLElement).]exp([element <HTMLElement>, ]cmilliseconds <Number>, value <Number>[, callback <String>]) -> expand/collapse element.
+	Experimental: [(NodeList|Array|HTMLElement).]tra([element <HTMLElement>, ]cmilliseconds <Number>, value <Number>[, callback <String>]) -> reposition element.
+	[Array.]rnd([from <Number>, to <Number>, non-rounded <Boolean>])|Rnd|Array.Rnd -> random number/element,leave arg(s) blank for random HEX.
+	swt([append <String>]) -> refresh specific funcs and append flags on auto switch.
+	[Math.]dst(x <Number>, y <Number>[, d <Number>]) -> provide (x,y) to calculate distance with pythagorean,provide (x||y,d) to calculate the missing parameter, (x,y,1) for degrees.
+	[Math.]Dst(x1 <Number>, x2 <Number>, y1 <Number>, y2 <Number>) -> dst between 2 objects.
+	[Math.]dst3(x <Number>, y <Number>, z <Number>, d <Number>) -> 3D dst.
+	[Math.]Dst3(x <Number>, y <Number>, z <Number>, X <Number>, Y <Number>, Z <Number>) -> Dst between 2 objects.
+	[Math.]col(x <Number>, y <Number>, X <Number>, Y <Number>, dx <Number>, dy <Number>, dX <Number>, dY <Number>) -> check if boxes collide.
+	[Math.]col(X <Number>, Y <Number>, dx <Number>, dy <Number>, x <Number>, y <Number>, r <Number>) -> box-circle.
+	[Math.]col(x <Number>, y <Number>, r <Number>, X <Number>, Y <Number>, R <Number>) -> circle-circle.
+	[Math.]col(x <Number>, y <Number>, r <Number>, X <Number>, Y <Number>) -> circle-point.
+	[Math.]col(x <Number>, y <Number>, r <Number>, ro <Number>, s <Number>, X <Number>, Y <Number>, R <Number>, RO <Number>, S <Number>) -> perfect polygon collisions.
+	[Math.]col3(x <Number>, y <Number>, z <Number>, r <Number>, X <Number>, Y <Number>, Z <Number>, R <Number>) -> 3D spheres.
+	Experimental: Deprecated: cn() -> import canvas module and css extension.
+	[(Number|String|Function).]rep([count <Number>, command <Function>, intial <Number>]) -> repeat a command.
+	[(Math|Number).]deg([degrees <Number>, radians <Boolean>]) -> convert degrees <=> radians.
+	Experimental: fon() -> adjust viewport to fullscreen.
+	[(Number|Math).]anl([number <Number>, ]min <Number>, max <Number>, Min <Number>, Max <Number>) -> number from range [min,max] to range [Min,Max] analogically.
+	[(Math|Number).]per([number <Number>, ]percentance <Number>[, scale=100 <Number>]) -> returns percentance of number.
+	[(String|NodeList|Array|HTMLElement).]crt([elementType <String|Array>, parent=document <HTMLElement|NodeList>]) -> create an html element and append on parent.
+	Experimental: ajx(URL <String>[, onloadFunction <Function>, method="GET" <String>, data <String>, synchronous <Boolean>, username <String>, password <String>]) -> perform an AJAX request.
+	(String|Array|Number).wrp(wrap <String>) -> wrap between.
+	[(Function|String|Number).]con([command <Function>, ]interval <Number>) -> run a command constantly, like setInterval but ignores first interval cooldown time.
+	[(String|NodeList|Array|HTMLElement).]rem([element <HTMLElement|Array|NodeList|String>]) -> remove html element from its parent.
+	Object.((ins|Ins)()|_ins|_Ins) -> inspect object enumerable properties or stringify non circular struct.
+	Object.((prp|Prp)(index <Number>)|_prp) -> grab object property (value|key) by index.
+	Object.(keys()|Keys) -> an alternative of Object.keys(object)
+	Object.(values()|Values) -> an alternative of Object.values(object)
+	Deprecated: String.dup(times <Number>) -> repeat string pattern. Pollyfill of String.repeat.
+	[Boolean.](alt([boolean  <Boolean>])|Alt) -> alternate boolean value.
+	Number.(sig()|Sig)|[Math.]sig(number <Number>) -> signum (+1/-1/0).
+	(Array|String).rmv(index) -> remove item from array/string.
+	(String|Array|Number).wrp(wr) -> wrap between.
+	Deprecated: Array.(pure()|Pure) -> grab array value instead of pointer.
+	Image.(data()|Data) -> export image as base64.
+	Array.(shf()|Shf) -> shuffle.
+	Object.(last(index <Number>)|Last) -> last element.
+	Object.(first(index <Number>)|First) -> first element.
+	(Number|Math).lim(min <Number>, max <Number>) -> limit number range.
+	(Number|Math).Lim(min <Number>, max <Number>) -> circular limit.
+	(Number|Array).(sum()|Sum) -> sum of range (0,this).
+	(Number|Array).(fac()|Fac) -> factorial of range.
+	[Object.](bool([item <Object>])|Bool) -> boolean representation.
+	par(function <String>, number <Number>, name <String>, code <String>) -> create number with specific number of params... E.x. : par("func",5,"param",function(){alert(param2)}||"alert(param2)") - func=function func(param1,param2,param3,param4,param5,param,param0){alert(param2)}.
+	Math.(Max|Min)(numarray <Array>)|Array.((min|max)()|(Min|Max)) -> max/min num of array.
+	Array.fill(value <Object>[, from <Number>, to <Number>]) -> fill polyfill.
+	[Boolean.]xor(a <Boolean>[, b <Boolean>]) -> a or b but not both.
+	Array.add(element <Object>) -> add element if not already in array.
+	Array.has(element <Object>) -> check if array has element.
+	Array.togg(element <Object>) -> toggle array element.
+	Array.flt() -> array elements become unique.
+	Array.inh(array <Array>) -> inherit on real array.
+	Matrix(2Darray <Array>) -> math matrix class, m : array, values : singledimensional m, row : row length , column : column length, trans() : transpose, mult(<Matrix|Number>) : multiply, add(<Matrix|Number>) : add.
+	D(x <Number>,y <Number>,z <Number>) -> 3D point, t(camera <Array>), T(distance <Object>), i().
+	err -> errors
+	X -> page width
+	Y -> page height
+	Xx -> screen width
+	Yy -> screen height
+	Dif -> smallest dimension of screen
+	dif -> smallest dimension of page
+	doc -> document
+	loc -> location
+	csl -> console
+	nav -> navigator
+	Win -> window or last load command
+	dat -> page savedata
+	auto -> mode switch, strict = no getters
+	Auto -> like auto but bitwise
+	AUTO -> Auto's constants
+	nul -> function(){}
+	Sec -> uptime
+	alph -> "abcdefghijklmnopqrtsuvwxyz"
+	ALPH -> alph.toUpperCase()
+	Alph -> (alph+ALPH+"0123456789")
+	online -> online
+	prefix -> ["moz","webkit","o","ms","khtml","ie"]
+	mobile -> mobile/pc bool
+	UA -> user agent
+	Rnd -> random HEX color
+	cor -> realtime coordinates of cursor ( of cor() ) */
 }//hlp
-//<script src=https://gist.github.com/ValentinHacker/f1e53050400fdb69e2cb74655c136f04.js></script>
+} catch(a) {err+=a+"\n"}

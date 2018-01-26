@@ -1,3 +1,5 @@
+if (typeof err=="undefined") err = "";
+try{
 x = innerWidth;
 y = innerHeight;
 d = [0,0];
@@ -8,16 +10,24 @@ Skew = [0,0];
 scls = [100,100];
 Scls = [100,100];
 loads = rots = Rots = 0;
-auto = true;  //heavy,light,fill,stroke,full,lock,unlock,nocenter
-canvas = new Object();
+if (typeof auto=="undefined") auto = true; //heavy,light,fill,stroke,full,lock,unlock,nocenter,strict
+if (typeof Auto=="undefined") Auto = new Number(0);
+const canvas = new Object();
+if (typeof AUTO=="undefined") const AUTO = new Object();Object.defineProperties(AUTO,{STRICT:{value:1,writable:false,configurable:false},HEAVY:{value:2,writable:false,configurable:false},LIGHT:{value:4,writable:false,configurable:false},NOCENTER:{value:8,writable:false,configurable:false},FILL:{value:16,writable:false,configurable:false},STROKE:{value:32,writable:false,configurable:false},FULL:{value:64,writable:false,configurable:false},UNLOCK:{value:128,writable:false,configurable:false},LOCK:{value:256,writable:false,configurable:false}});
 off = [0,0];
+Off = [0,0];
+un = [1,1];
 pixel = devicePixelRatio||1;
 onimgs = new CustomEvent("imgs");
 onimg = new CustomEvent("img");
-var crd = [0,0], ps = false, Trns = [0,0], Rots = 0, Scls = [100,100], dr = [null,null,null,null,null,false], zo = [null,null,null,null,false];
+drgs = [0,0];
+zoms = [100,100];
+Drgs = [0,0];
+can = {}, pen = {};
+var crd = [0,0], ps = false, Trns = [0,0], Rots = 0, Scls = [100,100], dr = [null,null,null,null,null,false], zo = [null,null,null,null,null,false], tr = [null,null,null,false];
 function ln(x,y,X,Y) {
 	if (Y!==undefined) {
-		if (auto&&!/unlock/gmi.test(auto.toString())) {
+		if (auto&&!/unlock/gmi.test(auto.toString())&&(Auto&AUTO.UNLOCK)!=AUTO.UNLOCK) {
 			beg();
 		}
 		mov(X!=null?X:(X=d[0]),Y!=null?Y:(Y=d[1]));
@@ -56,7 +66,8 @@ CanvasRenderingContext2D.prototype.wdt = function(wd) {
 	return wdt(wd);
 };
 function txt(tx,x,y,t,s,a,b,w) {
-	if (auto) {
+	//txt,x,y,stk,stl,algn,bsln,wdt
+	if (auto||(Auto&AUTO.LOCK)==AUTO.LOCK) {
 		beg();
 	}
 	if (s) {
@@ -104,7 +115,7 @@ CanvasRenderingContext2D.prototype.cur = function(x,y,x1,y1,x2,y2,X,Y) {
 	return cur(x,y,x1,y1,x2,y2,X,Y);
 };
 function mov(x,y,D) {
-	if (/lock/gmi.test(auto.toString())&&!/unlock/gmi.test(auto.toString())) {
+	if ((/lock/gmi.test(auto.toString())||(Auto&AUTO.LOCK)==AUTO.LOCK)&&(!/unlock/gmi.test(auto.toString())&&(Auto&AUTO.UNLOCK)!=AUTO.UNLOCK)) {
 		beg();
 	}
 	if (D===undefined) {
@@ -120,7 +131,7 @@ CanvasRenderingContext2D.prototype.move = function(x,y,D) {
 };
 function ark(x,y,r,a,b,c) {
 	if ((c!==undefined&&c!==null)||a===undefined||b===undefined||a===null) {
-		if (auto) {
+		if (auto||(Auto&AUTO.LOCK)==AUTO.LOCK) {
 			beg();
 		}
 		pen.arc(x!==null?x:d[0],y!==null?y:d[1],r===null?Dif:Math.abs(r),(a?a:0)/180*Math.PI,(b||360)/180*Math.PI,c?true:(a===undefined?true:false));
@@ -130,7 +141,7 @@ function ark(x,y,r,a,b,c) {
 		//x1,y1,x2,y2,r
 	}
 	if (auto) {
-		stk(auto.toString().match(/fill/gmi)?true:false);
+		stk(auto.toString().match(/fill/gmi)||(Auto&AUTO.FILL)==AUTO.FILL?true:false);
 		return mov(x,y);
 	}
 	return d = [x+rx,y];
@@ -141,7 +152,7 @@ CanvasRenderingContext2D.prototype.ark = function(x,y,r,a,b,c) {
 };
 if (CanvasRenderingContext2D.prototype.ellipse||CanvasRenderingContext2D.ellipse) {
 	function ell(x,y,rx,ry,a,b,c) {
-		if (auto) {
+		if (auto||(Auto&AUTO.LOCK)==AUTO.LOCK) {
 			beg();
 		}
 		rx = rx===undefined?Dif/2:rx;
@@ -154,7 +165,7 @@ if (CanvasRenderingContext2D.prototype.ellipse||CanvasRenderingContext2D.ellipse
 	}//ell
 } else {
 	ell = function(x,y,rx,ry,a,b,c) {
-		if (auto) {
+		if (auto||(Auto&AUTO.LOCK)==AUTO.LOCK) {
 			beg();
 		}
 		str();
@@ -179,7 +190,7 @@ CanvasRenderingContext2D.prototype.ell = function(x,y,rx,ry,a,b,c) {
 	return ell(x,y,rx,ry,a,b,c);
 };
 function pol(x,y,r,s,sa,A) {
-	if (auto) {
+	if (auto||(Auto&AUTO.LOCK)==AUTO.LOCK) {
 		beg();
 	}
 	var a = (Math.PI*2)/s;
@@ -206,7 +217,7 @@ function stk(typ) {
 	if (typ) {
 		pen.fill();
 	} else {
-		if (typ===undefined&&/fill/gmi.test(auto.toString())) {
+		if (typ===undefined&&(/fill/gmi.test(auto.toString())||(Auto&AUTO.FILL)==AUTO.FILL)) {
 			if (/stroke.*?fill/gmi.test(auto.toString())) {
 				stk(0);
 			}
@@ -239,7 +250,7 @@ CanvasRenderingContext2D.prototype.beg = function(x,y,c) {
 function cls() {
 	pen.closePath();
 	if (auto) {
-		stk(auto.toString().match(/fill/gmi)?true:false);
+		stk(auto.toString().match(/fill/gmi)||(Auto&AUTO.FILL)==AUTO.FILL?true:false);
 		beg();
 		mov(d[0],d[1]);
 	}
@@ -268,7 +279,7 @@ CanvasRenderingContext2D.prototype.ld = function(arr,m) {
 	return ld(arr,m);
 };
 function rct(x,y,dx,dy,typ) {
-	if (auto) {
+	if (auto||(Auto&AUTO.LOCK)==AUTO.LOCK) {
 		beg();
 	}
 	if (x===undefined) {
@@ -339,7 +350,7 @@ function scr(X,Y) {
 		can.style.width = "100vw";
 		can.style.height = "100vh";
 		can.style.top = can.style.left = 0;
-		if (/full/gmi.test(auto.toString())&&!canvas.full) {
+		if ((/full/gmi.test(auto.toString())||(Auto&AUTO.FULL)==AUTO.FULL)&&!canvas.full) {
 			addEventListener("resize",function(){scr()});
 			addEventListener("orientationchange",function(){scr()});
 			canvas.full = true;
@@ -370,8 +381,7 @@ CanvasRenderingContext2D.prototype.scr = function(X,Y) {
 };
 function rot(r,R) {
 	if (R) {
-		rot(-rots);
-		return rot(r);
+		return rot(-rots+r);
 	}
 	if (r===undefined) {
 		rot(-rots*Math.PI/180);
@@ -388,8 +398,7 @@ CanvasRenderingContext2D.prototype.rot = function(r,R) {
 };
 function scl(X,Y,r) {
 	if (r) {
-		scl(-scls[0],-scls[1]);
-		return scl(X,Y);
+		return scl(-scls[0]+X,-scls[1]+Y);
 	}
 	if (X===undefined) {
 		scl(100/scls[0],100/scls[1]);
@@ -408,7 +417,7 @@ function scl(X,Y,r) {
 		if (!/nocenter/gmi.test(auto.toString())) {
 			trn((x-X*x)/2,(y-Y*y)/2);
 		}
-		un = [x/Xx*100/scls[0],y/Yy*100/scls[1]];
+		un = [x/(mobile?Xx:innerWidth)*100/scls[0],y/(mobile?Yy:innerHeight)*100/scls[1]];
 	}
 	return scls;
 }//scl
@@ -418,8 +427,7 @@ CanvasRenderingContext2D.prototype.scl = function(X,Y,r) {
 };
 function trn(X,Y,r) {
 	if (r) {
-		trn(-trns[0],-trns[1]);
-		return trn(X,Y);
+		return trn(-trns[0]+X,-trns[1]+Y);
 	}
 	if (X===undefined) {
 		return trn(-trns[0],-trns[1]);
@@ -551,12 +559,14 @@ function grb(cn) {
 			Pixel = pen.webkitBackingStorePixelRatio||pen.mozBackingStorePixelRatio||pen.msBackingStorePixelRatio||pen.oBackingStorePixelRatio||pen.backingStorePixelRatio||1;
 			Un = pixel/(Pixel||1);
 			off = [can.offsetLeft-(can.style.left.replace("px","")||can.offsetLeft),can.offsetTop-(can.style.top.replace("px","")||can.offsetTop)];
+			Off = [can.offsetLeft,can.offetTop];
 			if (/full/gmi.test(auto.toString())) {
 				scr();
 			}
 			if (/lock/gmi.test(auto.toString())) {
 				trn(x/2,y/2);
 			}
+			Det(can);
 			return pen;
 		}
 		return can;
@@ -637,7 +647,7 @@ CanvasRenderingContext2D.prototype.eff = function(tp,a,b,c,d) {
 	var pen = this, can = this.canvas;
 	eff(tp,a,b,c,d);
 };
-function drg() {
+function drg(a) {
 	if (dr[5]) {
 		dr.forEach(function(val,ind) {
 			if (ind==5) {
@@ -676,17 +686,23 @@ function drg() {
 		if (e.touches&&ps) {
 			if (e.touches.length==1) {
 				crds = [e.touches[0].clientX*un[0]-crd[0],e.touches[0].clientY*un[1]-crd[1]];
-				trn(crds[0],crds[1]);
+				if (!a) {
+					trn(crds[0],crds[1]);
+				}
+				Drgs = crd.concat([]);
 				crd = [e.touches[0].clientX*un[0],e.touches[0].clientY*un[1]];
 			}
 		} else if (ps) {
 			crds = [e.clientX*un[0]-crd[0],e.clientY*un[1]-crd[1]];
-			trn(crds[0],crds[1]);
+			if (!a) {
+				trn(crds[0],crds[1]);
+			}
+			Drgs = crd.concat([]);
 			crd = [e.clientX*un[0],e.clientY*un[1]];
 		}
 	}//move
 }//drg
-function zom() {
+function zom(a) {
 	if (zo[4]) {
 		zo.forEach(function(val,ind) {
 			if (ind==4) {
@@ -697,41 +713,105 @@ function zom() {
 		});
 		return;
 	}
-	var ds = 0, ps = false, Ds = [0,0];
+	var ds = 0, ps = false, Trns = trns.concat([]);
 	zo[0] = can.addEventListener("touchstart",start);
 	zo[1] = can.addEventListener("touchend",function(e) {
 		if (e.changedTouches.length!=2) {
 			ps = false;
+			ds = 0;
 		}
 	});
 	function start(e) {
 		if (e.touches) {
 			if (e.touches.length==2) {
-				ds = dst(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+				Trns = trns.concat([]);
+				ds = dst((e.touches[0].clientX-e.touches[1].clientX)*un[0],(e.touches[0].clientY-e.touches[1].clientY)*un[1]);
 				ps = true;
 			} else {
 				ps = false;
+				ds = 0;
 			}
+		} else {
+			ds = dst(e.clientX*un[0],e.clientY*un[1]);
 		}
 	}//start
 	zo[2] = can.addEventListener("touchmove",move);
-	zo[3] = can.addEventListener("wheel",zoom);
-	zo[4] = true;
+	zo[4] = can.addEventListener("wheel",zoom);
+	zo[3] = can.addEventListener("wheel",start);
+	zo[5] = true;
 	function move(e) {
+		var Auto = auto;
+		e.preventDefault();
 		if (e.touches.length==2&&ps) {
-			e.preventDefault();
-			var tmp = dst(e.touches[0].clientX-e.touches[1].clientX,e.touches[0].clientY-e.touches[1].clientY);
+			var tmp = dst((e.touches[0].clientX-e.touches[1].clientX)*un[0],(e.touches[0].clientY-e.touches[1].clientY)*un[1]);
+			var X = un[0]*(e.touches[0].clientX+e.touches[1].clientX)/2;
+			var Y = un[1]*(e.touches[0].clientY+e.touches[1].clientY)/2;
 			var tm = ds-tmp;
-			scl(100-per(100,tm,dif));
+			auto = "nocenter";
+			if (!a) {
+				scl(100-per(100,tm,dif));
+				trn((X/x)*(x*scls[0]-x.per((100-per(100,tm,DIF))*scls[0]))+Trns[0],(Y/y)*(y*scls[1]-y.per((100-per(100,tm,DIF))*scls[1]))+Trns[1],1);
+			}
+			zoms = 100-per(100,tm,dif);
+			auto = Auto;
 			ds = tmp;
-			Ds = [per(100-scls[0],(e.touches[0].clientX+e.touches[1].clientX)/2+trns[0]),per(100-scls[1],(e.touches[0].clientY+e.touches[1].clientY)/2+trns[1])];
 		}
 	}//move
 	function zoom(e) {
 		e.preventDefault();
-		scl(100+(e.movementY/Y)*100*e.deltaY/Math.abs(e.deltaY));
+		var Auto = auto;
+		auto = "nocenter";
+		if (!a) {
+			scl(100-(e.movementY/Y)*10*e.deltaY/Math.abs(e.deltaY));
+			trn((100/scls[0])*Trns[0]-(100/scls[0])*e.clientX*un[0]+e.clientX*un[0],(100/scls[1])*Trns[1]-(100/scls[1])*e.clientY*un[1]+e.clientY*un[1],1);
+		}
+		zoms = [100-(e.movementY/Y)*10*e.deltaY/Math.abs(e.deltaY),100-(e.movementY/Y)*10*e.deltaY/Math.abs(e.deltaY)];
+		auto = Auto;
 	}//zoom
 }//zom
+function rts() {
+	if (tr[4]) {
+		tr.forEach(function(val,ind) {
+			if (ind==4) {
+				tr[4] = false;
+				return;
+			}
+			removeEventListener(val);
+		});
+		return;
+	}
+	var ps = false, Ds = [0,0];
+	tr[0] = can.addEventListener("touchstart",start);
+	tr[1] = can.addEventListener("touchend",function(e) {
+		if (e.changedTouches.length!=2) {
+			ps = false;
+			Ds = [0,0];
+		}
+	});
+	function start(e) {
+		if (e.touches) {
+			if (e.touches.length==2) {
+				ps = true;
+				Ds = [e.touches[0].clientX*un[0],e.touches[0].clientY*un[1],e.touches[1].clientX*un[0],e.touches[1].clientY*un[1]];
+			} else {
+				ps = false;
+				Ds = [0,0];
+			}
+		}
+	}//start
+	tr[2] = can.addEventListener("touchmove",move);
+	tr[3] = true;
+	function move(e) {
+		e.preventDefault();
+		if (e.touches.length==2&&ps) {
+			var tmp = [e.touches[0].clientX*un[0],e.touches[0].clientY*un[1],e.touches[1].clientX*un[0],e.touches[1].clientY*un[1]];
+			var tm = dst(tmp[2]-tmp[0],tmp[3]-tmp[1],1)-dst(Ds[2]-Ds[0],Ds[3]-Ds[1],1)
+			rot(tm);
+			Ds = tmp;
+		}
+	}//move
+	//TODO: pc right click control
+}//rts
 function sha(x,y,clr,blr) {
 	pen.shadowOffsetX = x?x:0;
 	pen.shadowOffsetY = y?y:0;
@@ -793,20 +873,27 @@ CanvasRenderingContext2D.prototype.edt = function(dt,ed,pre,post) {
 ImageData.prototype.edt = function(ed,pre,post) {
 	return this.data = edt(this,ed,pre,post).data;
 };
-function D(x,y,z) {
-	this.X = this.x = x
-	this.Y = this.y = y
-	this.Z = this.z = z
-	this.t = function(c) {
-		var x = deg(c[3]), y = deg(c[4]), z = deg(c[5]), X = this.x-c[0], Y = this.y-P[1], Z = this.z-P[2]
-		var nc = [Math.cos(y)*(Math.sin(z)*Y+Math.cos(z)*X)-Math.sin(y)*Z, Math.sin(x)*(Math.cos(y)*Z+Math.sin(y)*(Math.sin(z)*Y+Math.cos(z)*X))+Math.cos(x)*(Math.cos(z)*Y-Math.sin(z)*X), Math.cos(x)*(Math.cos(y)*Z+Math.sin(y)*(Math.sin(z)*Y+Math.cos(z)*X))-Math.sin(x)*(Math.cos(z)*Y-Math.sin(z)*X)]
-		this.X = nc[0]
-		this.Y = nc[1]
-		this.Z = nc[2]
-		return nc
-	}//t
-	return this
-}//D
+function det() {
+	if (can.offsetTop) {
+		Off = [can.offsetLeft,can.offsetTop];
+		un = [x/(mobile?Xx:innerWidth)*100/scls[0],y/(mobile?Yy:innerHeight)*100/scls[1]];
+	}
+}//det
+function Det(Can) {
+	(mobile?["touchstart","touchmove"]:["mousedown","click","mousemove","wheel"]).each(function(val) {
+		(Can||can).addEventListener(val,function(e) {
+			e.preventDefault();
+			if (e.touches) {
+				if (e.touches.length) {
+					drgs = [(e.touches.last().clientX-Off[0])*un[0]-trns[0],(e.touches.last().clientY-Off[1])*un[1]-trns[1]];
+				}
+			} else {
+				drgs = [(e.clientX-Off[0])*un[0]-trns[0],(e.clientY-Off[1])*un[1]-trns[1]];
+			}
+		});
+	});
+}//Det
+setInterval(det,2000);
 function hlpc() {
 	//<script src=https://dl.dropboxusercontent.com/s/iqx2kzfiguvp44y/Canvas.js?dl=1&raw=1></script>
 	//<script src="https://gist.github.com/ValentinHacker/8ce917a26b8779ea03a4cfd01ef07212.js"></script>
@@ -869,6 +956,8 @@ function hlpc() {
 	dif -> smallest dimension of page
 	Dif -> smallest dimension of screen
 	DIF -> smallest dimension of canvas
-	off -> canvas offset [x,y]
+	off -> canvas offset difference [x,y]
+	Off -> canvas offset [x,y]
 	auto -> true/false defines if stk() and beg() happen automatically */
 }//hlpc
+}catch(e){err+=e+"\n"}
