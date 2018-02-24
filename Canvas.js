@@ -12,8 +12,8 @@ Scls = [100,100];
 loads = rots = Rots = 0;
 if (typeof auto=="undefined") auto = true; //heavy,light,fill,stroke,full,lock,unlock,nocenter,strict
 if (typeof Auto=="undefined") Auto = new Number(0);
-const canvas = new Object();
-if (typeof AUTO=="undefined") const AUTO = new Object();Object.defineProperties(AUTO,{STRICT:{value:1,writable:false,configurable:false},HEAVY:{value:2,writable:false,configurable:false},LIGHT:{value:4,writable:false,configurable:false},NOCENTER:{value:8,writable:false,configurable:false},FILL:{value:16,writable:false,configurable:false},STROKE:{value:32,writable:false,configurable:false},FULL:{value:64,writable:false,configurable:false},UNLOCK:{value:128,writable:false,configurable:false},LOCK:{value:256,writable:false,configurable:false}});
+canvas = new Object();
+if (typeof AUTO=="undefined") AUTO = new Object();Object.defineProperties(AUTO,{STRICT:{value:1,writable:false,configurable:false},HEAVY:{value:2,writable:false,configurable:false},LIGHT:{value:4,writable:false,configurable:false},NOCENTER:{value:8,writable:false,configurable:false},FILL:{value:16,writable:false,configurable:false},STROKE:{value:32,writable:false,configurable:false},FULL:{value:64,writable:false,configurable:false},UNLOCK:{value:128,writable:false,configurable:false},LOCK:{value:256,writable:false,configurable:false}});
 off = [0,0];
 Off = [0,0];
 un = [1,1];
@@ -24,7 +24,8 @@ drgs = [0,0];
 zoms = [100,100];
 Drgs = [0,0];
 can = {}, pen = {};
-var crd = [0,0], ps = false, Trns = [0,0], Rots = 0, Scls = [100,100], dr = [null,null,null,null,null,false], zo = [null,null,null,null,null,false], tr = [null,null,null,false];
+Trns = [0,0], Rots = 0, Scls = [100,100];
+var crd = [0,0], ps = false, dr = [null,null,null,null,null,false], zo = [null,null,null,null,null,false], tr = [null,null,null,false];
 function ln(x,y,X,Y) {
 	if (Y!==undefined) {
 		if (auto&&!/unlock/gmi.test(auto.toString())&&(Auto&AUTO.UNLOCK)!=AUTO.UNLOCK) {
@@ -180,7 +181,7 @@ if (CanvasRenderingContext2D.prototype.ellipse||CanvasRenderingContext2D.ellipse
 		if (!auto) {
 			return d = [x+rx,y];
 		} else {
-			stk(auto.toString().match(/fill/gmi)?true:false);
+			stk(auto.toString().match(/fill/gmi)||(Auto&AUTO.FILL)==AUTO.FILL?true:false);
 			return mov(x,y);
 		}
 	};
@@ -414,7 +415,7 @@ function scl(X,Y,r) {
 	pen.scale(X!==null?X:1,Y!==null?Y:1);
 	scls = [scls[0]*X,scls[1]*Y];
 	if (auto&&can.width==x&&can.height==y) {
-		if (!/nocenter/gmi.test(auto.toString())) {
+		if (!/nocenter/gmi.test(auto.toString())&&!(Auto&AUTO.NOCENTER)==AUTO.NOCENTER) {
 			trn((x-X*x)/2,(y-Y*y)/2);
 		}
 		un = [x/(mobile?Xx:innerWidth)*100/scls[0],y/(mobile?Yy:innerHeight)*100/scls[1]];
@@ -539,6 +540,7 @@ function grb(cn) {
 		document.head.appendChild(module = document.createElement("script"));
 		module.src = "https://dl.dropboxusercontent.com/s/i8vpm0vlhrlc1en/Module.js?dl=1&raw=1";
 		setTimeout(module.onload=function(){grb(cn)},500);
+		console.warn("Module.js is not imported.");
 	} else {
 		if (typeof cn=="string") {
 			cn = ele(cn);
@@ -560,10 +562,10 @@ function grb(cn) {
 			Un = pixel/(Pixel||1);
 			off = [can.offsetLeft-(can.style.left.replace("px","")||can.offsetLeft),can.offsetTop-(can.style.top.replace("px","")||can.offsetTop)];
 			Off = [can.offsetLeft,can.offetTop];
-			if (/full/gmi.test(auto.toString())) {
+			if (/full/gmi.test(auto.toString())||(Auto&AUTO.FULL)==AUTO.FULL) {
 				scr();
 			}
-			if (/lock/gmi.test(auto.toString())) {
+			if (/lock/gmi.test(auto.toString())||(Auto&AUTO.LOCK)==AUTO.LOCK) {
 				trn(x/2,y/2);
 			}
 			Det(can);
@@ -880,9 +882,9 @@ function det() {
 	}
 }//det
 function Det(Can) {
-	(mobile?["touchstart","touchmove"]:["mousedown","click","mousemove","wheel"]).each(function(val) {
+	(mobile?["touchstart","touchmove"]:["mousedown","click","mousemove","wheel"]).forEach(function(val) {
 		(Can||can).addEventListener(val,function(e) {
-			e.preventDefault();
+			if (Can) e.preventDefault()
 			if (e.touches) {
 				if (e.touches.length) {
 					drgs = [(e.touches.last().clientX-Off[0])*un[0]-trns[0],(e.touches.last().clientY-Off[1])*un[1]-trns[1]];
