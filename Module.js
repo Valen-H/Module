@@ -1,6 +1,6 @@
 err = "";
 try{var t = [], coor = [], empty = tick = function(){}, tmp = this;
-const module = new Object();
+module = new Object();
 X = innerWidth;
 Y = innerHeight;
 Xx = screen.width;
@@ -32,7 +32,8 @@ if (typeof Auto=="undefined") Auto = new Number(0);
 	Auto &= ~Constant //remove once
 */
 Sec = Millis = millis = 0;
-const AUTO = new Object(), nul = function(){}, mobile = /android|iphone|ipod|ipad|tablet|smartphone|ios/gmi.test(UA=navigator.userAgent), falseReg = /^(false|null|""|''|0|off|no|[]|{}|``|undefined|NaN|)$/gmi;
+AUTO = new Object(), nul = function(){};
+mobile = /android|iphone|ipod|ipad|tablet|smartphone|ios/gmi.test(UA=navigator.userAgent), falseReg = /^(false|null|""|''|0|off|no|[]|{}|``|undefined|NaN|)$/gmi;
 Object.defineProperties(AUTO,{STRICT:{value:1,writable:false,configurable:false},HEAVY:{value:2,writable:false,configurable:false},LIGHT:{value:4,writable:false,configurable:false},NOCENTER:{value:8,writable:false,configurable:false},FILL:{value:16,writable:false,configurable:false},STROKE:{value:32,writable:false,configurable:false},FULL:{value:64,writable:false,configurable:false},UNLOCK:{value:128,writable:false,configurable:false},LOCK:{value:256,writable:false,configurable:false}});
 alph = "abcdefghijklmnopqrtsuvwxyz";
 ALPH = alph.toUpperCase();
@@ -593,14 +594,14 @@ NodeList.prototype.tra = Array.prototype.tra = String.prototype.tra = HTMLElemen
 };
 function rnd(frm,to,rd) {
 	if (frm===undefined) {
-		return "#"+Math.round(Math.random()*16777215).toString(16);
+		return "#"+((Math.random()*16777215)|0).toString(16);
 	} else {
 		to = to===undefined?frm:to;
 		frm = frm==to?0:frm;
 		var tmp = [Math.min(frm,to),Math.max(frm,to)];
 		frm = tmp[0];
 		to = tmp[1];
-		return !rd?Math.round(Math.random()*(to-frm)+frm):(Math.random()*(to-frm)+frm);
+		return !rd?(Math.random()*(to-frm)+frm)|0:(Math.random()*(to-frm)+frm);
 	}
 }//rnd
 Math.rnd = rnd;
@@ -616,7 +617,7 @@ Array.prototype.rnd = function(rd) {
 };
 Object.defineProperty(window,"Rnd",{get:function(){return rnd()}});
 function swt(a) {
-	if (a) auto = auto.toString()+a;
+	if (a) auto = auto.toString()+a
 	if (/heavy/gmi.test(auto.toString())||(Auto&AUTO.HEAVY)==AUTO.HEAVY) {
 		rnd = function(frm,to,rd) {
 			if (frm===undefined) {
@@ -641,48 +642,66 @@ function swt(a) {
 	}
 	if ((!/strict/gmi.test(auto.toString())&&(Auto&AUTO.STRICT)!=AUTO.STRICT)&&Object.prototype.__defineGetter__&&Object.prototype.__defineSetter__) {
 		try {
-			if(!Array.prototype.datatype){Array.prototype.__defineGetter__("datatype",function() {
-				var type = 0;
-				for (var stp = 0; stp < this.length; stp++) {
-					if ((typeof this[stp]=="number"&&!type)||(typeof this[stp]=="string"&&type<2)||((this[stp] instanceof Array)&&type<3)||((this[stp] instanceof Object)&&type<4)) {
-						type++
-					}
-				}
-				return type==1?"Number":(type==2?"String":(type==3?"Array":"Object"));
-			});
-			Array.prototype.__defineSetter__("datatype",function() {
-				var cls = eval(this.datatype), nar = [];
-				this.each((function(val,ind,arr){
-					nar.push(new cls(val));
-				}).bind(this));
-				this.inh(nar);
-				return this;
-			});}
-			if(!Array.prototype.Sum)Array.prototype.__defineGetter__("Sum",function(){return this.sum();});
-			if(!Array.prototype.Fac)Array.prototype.__defineGetter__("Fac",function(){return this.fac()});
-			if(!Array.prototype.Pure)Array.prototype.__defineGetter__("Pure",function(){return this.pure()});
-			if(!Array.prototype.Cmp)Array.prototype.__defineGetter__("Cmp",function(){return cmp(this)});
-			if(!Array.prototype.Rnd)Array.prototype.__defineGetter__("Rnd",function(){return this.rnd()});
-			if(!Array.prototype.Shf)Array.prototype.__defineGetter__("Shf",function(){return this.clone().shf()});
-			if(!Array.prototype.Max)Array.prototype.__defineGetter__("Max",function(){return this.max()});
-			if(!Array.prototype.Min)Array.prototype.__defineGetter__("Min",function(){return this.min()});
-			if(!Object.prototype._ins)Object.prototype.__defineGetter__("_ins",function(){return this.ins()});
-			if(!Object.prototype._Ins)Object.prototype.__defineGetter__("_Ins",function(){return this.Ins()});
+			if(!Object.prototype._ins) {
+				Object.defineProperty(Object.prototype,"_ins",{enumerable:false});
+				Object.prototype.__defineGetter__("_ins",function(){return ins(this)});
+			}
+			if(!Object.prototype._Ins)Object.prototype.__defineGetter__("_Ins",function(){return Ins(this)});
 			if(!Object.prototype._prp)Object.prototype.__defineGetter__("_prp",function(){return Object.getOwnPropertyNames(this)});
 			if(!Object.prototype.Values)Object.prototype.__defineGetter__("Values",function(){return this.values()});
 			if(!Object.prototype.Keys)Object.prototype.__defineGetter__("Keys",function(){return Object.keys(this)});
+			if(!Object.prototype.Names)Object.prototype.__defineGetter__("Names",function(){return Object.names(this)});
 			if(!Object.prototype.string)Object.prototype.__defineGetter__("string",function(){return this.toString()});
 			if(!Object.prototype.Last)Object.prototype.__defineGetter__("Last",function(){return this.last()});
 			if(!Object.prototype.First)Object.prototype.__defineGetter__("First",function(){return this.first()});
 			if(!Object.prototype.Alt)Object.prototype.__defineGetter__("Alt",function(){return this.alt()});
-			if(!Object.prototype.Bool)Object.prototype.__defineGetter__("Bool",function(){return this.bool()});
-			if(!Image.prototype.Data)Image.prototype.__defineGetter__("Data",function(){return this.data()});
-			if(!Number.prototype.Sig)Number.prototype.__defineGetter__("Sig",function(){return this.sig()});
 		} catch(e) {}
 	}
 	return auto;
 }//swt
 swt();
+if (Object.prototype.__defineGetter__&&Object.prototype.__defineSetter__) {
+	if(!Array.prototype.datatype){Array.prototype.__defineGetter__("datatype",function() {
+		var type = 0;
+		for (var stp = 0; stp < this.length; stp++) {
+			if ((typeof this[stp]=="number"&&!type)||(typeof this[stp]=="string"&&type<2)||((this[stp] instanceof Array)&&type<3)||((this[stp] instanceof Object)&&type<4)) {
+				type++
+			}
+		}
+		return type==1?"Number":(type==2?"String":(type==3?"Array":"Object"));
+	});
+	Array.prototype.__defineSetter__("datatype",function() {
+		var cls = eval(this.datatype), nar = [];
+		this.forEach((function(val,ind,arr){
+			nar.push(new cls(val));
+		}).bind(this));
+		this.inh(nar);
+		return this;
+		});
+	}
+	try{if(!Object.prototype._ins)[Array,String,Number].forEach(function(each){each.prototype.__defineGetter__("_ins",function(){return ins(this)})});
+	if(!Object.prototype._Ins)[Array,String,Number].forEach(function(each){each.prototype.__defineGetter__("_Ins",function(){return Ins(this)})});
+	if(!Object.prototype._prp)[Array,String,Number].forEach(function(each){each.prototype.__defineGetter__("_prp",function(){return Object.getOwnPropertyNames(this)})});
+	if(!Object.prototype.Values)[Array,String,Number].forEach(function(each){each.prototype.__defineGetter__("Values",function(){return this.values()})});
+	if(!Object.prototype.Keys)[Array,String,Number].forEach(function(each){each.prototype.__defineGetter__("Keys",function(){return Object.keys(this)})});
+	if(!Object.prototype.Names)[Array,String,Number].forEach(function(each){each.prototype.__defineGetter__("Names",function(){return Object.names(this)})});
+	if(!Object.prototype.string)[Array,String,Number].forEach(function(each){each.prototype.__defineGetter__("string",function(){return this.toString()})});
+	if(!Object.prototype.Last)[Array,String,Number].forEach(function(each){each.prototype.__defineGetter__("Last",function(){return this.last()})});
+	if(!Object.prototype.First)[Array,String,Number].forEach(function(each){each.prototype.__defineGetter__("First",function(){return this.first()})});
+	if(!Object.prototype.Alt)[Array,String,Number].forEach(function(each){each.prototype.__defineGetter__("Alt",function(){return this.alt()})});}catch(ig){}
+	if(!Array.prototype.Sum)Array.prototype.__defineGetter__("Sum",function(){return this.sum()});
+	if(!Array.prototype.Fac)Array.prototype.__defineGetter__("Fac",function(){return this.fac()});
+	if(!Array.prototype.Pure)Array.prototype.__defineGetter__("Pure",function(){return this.pure()});
+	if(!Array.prototype.Cmp)Array.prototype.__defineGetter__("Cmp",function(){return cmp(this)});
+	if(!Array.prototype.Rnd)Array.prototype.__defineGetter__("Rnd",function(){return this.rnd()});
+	if(!Array.prototype.Shf)Array.prototype.__defineGetter__("Shf",function(){return this.clone().shf()});
+	if(!Array.prototype.Max)Array.prototype.__defineGetter__("Max",function(){return this.max()});
+	if(!Array.prototype.Min)Array.prototype.__defineGetter__("Min",function(){return this.min()});
+	if(!String.prototype.Bool)String.prototype.__defineGetter__("Bool",function(){return this.bool()});
+	if(!Number.prototype.Sig)Number.prototype.__defineGetter__("Sig",function(){return this.sig()});
+} else {
+	console.warn("Object.prototype.__defineGetter__  and/or  Object.prototype.__defineGetter__  is/are deprecated.");
+}
 function dst(x,y,d) {
 	if (x!==undefined&&y!==undefined&&d===undefined) {
 		return Math.sqrt(Math.pow(x,2)+Math.pow(y,2));
@@ -939,12 +958,14 @@ function rem(el) {
 function ins(el) {
 	var arr = [];
 	for (prop in el) {
-		arr.push(typeof prop=="object"?Ins(prop):prop);
+		if (!/^_?ins$/.test(prop.toString())) {
+			arr.push(typeof prop=="object"?Ins(prop):prop);
+		}
 	}
 	return arr;
 }//ins
 function Ins(el) {
-	return JSON.stringify(el)||el;
+	return JSON.stringify(el,null,2)||el;
 }//Ins
 Object.prototype.prp = function(ind) {
 	return this[Object.keys(this)[ind?Number(ind):0]];
@@ -952,7 +973,7 @@ Object.prototype.prp = function(ind) {
 Object.prototype.Prp = function(ind) {
 	return Object.keys(this)[ind?Number(ind):0];
 };
-Object.prototype.values = function() {
+Array.prototype.values = Object.prototype.values = function() {
 	return Object.keys(this).filter(function(val){return val!="Values"?true:false}).map((function(val) {
 		return this[val];
 	}).bind(this));
@@ -1285,7 +1306,7 @@ if (!escape) {
 if (!unescape) {
 	unescape = decodeURI||decodeURIComponent;
 }
-Object.prototype.each = Object.prototype.foreach = Object.prototype.forEach = Array.prototype.forEach;
+Object.prototype.each = Object.prototype.foreach = Object.prototype.forEach = Array.prototype.each = Array.prototype.forEach;
 Number.prototype.forEach = function(func) {
 	return this.toString().forEach(func);
 };
@@ -1374,16 +1395,20 @@ Matrix = function Matrix(array) {
 function D(x,y,z) {
 	this.dx = this.X = this.x = x;
 	this.dy = this.Y = this.y = y;
+	this.s = this.S = 1;
 	this.Z = this.z = z;
 	this.c = [0,0,0,0,0,0];
-	this.e = {x:0,y:0,z:0};
-	this.t = function(c) {
+	this.e = {x:0,y:0,z:0,fl:250,vp:500};
+	this.t = function(c, fl) {
 		this.c = c||this.c;
 		var x = deg(this.c[3]), y = deg(this.c[4]), z = deg(this.c[5]), X = this.x-this.c[0], Y = this.y-this.c[1], Z = this.z-this.c[2];
 		var nc = [Math.cos(y)*(Math.sin(z)*Y+Math.cos(z)*X)-Math.sin(y)*Z, Math.sin(x)*(Math.cos(y)*Z+Math.sin(y)*(Math.sin(z)*Y+Math.cos(z)*X))+Math.cos(x)*(Math.cos(z)*Y-Math.sin(z)*X), Math.cos(x)*(Math.cos(y)*Z+Math.sin(y)*(Math.sin(z)*Y+Math.cos(z)*X))-Math.sin(x)*(Math.cos(z)*Y-Math.sin(z)*X)];
 		this.X = nc[0];
 		this.Y = nc[1];
 		this.Z = nc[2];
+		if (fl) {
+			this.S = fl/(fl+this.Z);
+		}
 		this.T({x:c[0],y:c[1],z:c[2]});
 		return nc;
 	};
